@@ -71,6 +71,9 @@
         </style>
     <?php endif; ?>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -791,9 +794,7 @@
             </button>
 
             <div class="text-center space-y-1">
-                <div class="w-12 h-12 rounded-2xl bg-purple-700 text-white flex items-center justify-center text-xl mx-auto shadow-md">
-                    <i class="fa-solid fa-user-shield"></i>
-                </div>
+                <img src="/images/logo1.png" alt="Logo SA'BAWA" class="h-14 mx-auto object-contain mb-2" onError="this.onerror=null; this.src='/images/logo1.png';">
                 <h3 class="text-base font-extrabold text-slate-900">Login Admin SA'BAWA</h3>
                 <p class="text-xs text-slate-500">Masuk untuk kelola & edit data hasil tes</p>
             </div>
@@ -1049,7 +1050,17 @@
                         localStorage.setItem('sabawa_admin', 'true');
                         this.showLoginModal = false;
                         this.loginError = '';
-                        alert('Berhasil login sebagai Admin SA\'BAWA!');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Login Berhasil',
+                            text: "Selamat datang kembali, Admin SA'BAWA!",
+                            confirmButtonColor: '#7e22ce',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            customClass: {
+                                popup: 'rounded-3xl'
+                            }
+                        });
                     } else {
                         this.loginError = 'Username atau Password salah!';
                     }
@@ -1058,7 +1069,17 @@
                 logoutAdmin() {
                     this.isAdmin = false;
                     localStorage.removeItem('sabawa_admin');
-                    alert('Anda telah keluar dari Mode Admin.');
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Mode Admin Dinonaktifkan',
+                        text: 'Anda telah keluar dari Mode Admin.',
+                        confirmButtonColor: '#7e22ce',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'rounded-3xl'
+                        }
+                    });
                 },
 
                 calculateNormaServisPendek(score) {
@@ -1150,7 +1171,17 @@
                     }
 
                     this.saveRecordsToStorage();
-                    alert('Data penilaian berhasil disimpan!');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Simpan!',
+                        text: 'Data penilaian berhasil disimpan.',
+                        confirmButtonColor: '#7e22ce',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'rounded-3xl'
+                        }
+                    });
 
                     this.form.nama = '';
                     this.form.nim = '';
@@ -1163,10 +1194,35 @@
                 },
 
                 deleteRecord(id) {
-                    if (confirm('Apakah Anda yakin ingin menghapus data tes ini?')) {
-                        this.records = this.records.filter(r => r.id !== id);
-                        this.saveRecordsToStorage();
-                    }
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: 'Data tes ini akan dihapus secara permanen!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'rounded-3xl'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.records = this.records.filter(r => r.id !== id);
+                            this.saveRecordsToStorage();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus!',
+                                text: 'Data tes telah berhasil dihapus.',
+                                confirmButtonColor: '#7e22ce',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                customClass: {
+                                    popup: 'rounded-3xl'
+                                }
+                            });
+                        }
+                    });
                 },
 
                 get filteredRecords() {
@@ -1209,7 +1265,17 @@
 
                 exportToCSV() {
                     if (this.records.length === 0) {
-                        alert('Tidak ada data untuk diekspor.');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan',
+                            text: 'Tidak ada data untuk diekspor.',
+                            confirmButtonColor: '#7e22ce',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            customClass: {
+                                popup: 'rounded-3xl'
+                            }
+                        });
                         return;
                     }
                     let csv = 'Nama,NIM,Jenis Kelamin,Kelas,Tanggal,Servis Pendek,Norma SP,Servis Panjang,Norma SJ,Lob,Norma Lob,Smash,Norma Smash,Evaluasi Total\n';
