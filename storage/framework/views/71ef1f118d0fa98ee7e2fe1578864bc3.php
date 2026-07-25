@@ -930,6 +930,47 @@
                 loginForm: { username: 'admin', password: '' },
                 loginError: '',
 
+                appName: localStorage.getItem('sabawa_app_name') || "SA'BAWA",
+                appSubtitle: localStorage.getItem('sabawa_app_subtitle') || "Silvi Aryanti' Badminton Assessment WebApp",
+                appLogo: localStorage.getItem('sabawa_app_logo') || "/images/logo1.png",
+                aboutDesc: localStorage.getItem('sabawa_about_desc') || "Pengembangan Instrumen Penilaian Teknik Dasar Bulutangkis Berbasis Aplikasi Web",
+                teamMembers: JSON.parse(localStorage.getItem('sabawa_team_members')) || [
+                    { name: "Silvi Aryanti, M.Pd.", role: "Ketua Peneliti", nidn: "NIDN 0021079101", img: "images/Picture1.png" },
+                    { name: "Destriana, M.Pd.", role: "Anggota 1", nidn: "NIDN 0001128905", img: "images/Picture2.png" },
+                    { name: "Fitri Agung Nanda, M.Pd.", role: "Anggota 2", nidn: "NIDN 0016039408", img: "images/Picture3.png" },
+                    { name: "Soleh Solahuddin, M.Pd.", role: "Anggota 3", nidn: "NIDK 8898323419", img: "images/Picture4.png" }
+                ],
+
+                materi: JSON.parse(localStorage.getItem('sabawa_materi')) || [
+                    { id: 'overview', tabTitle: 'Overview', title: 'Instrumen Penilaian Bulutangkis', description: 'Dikembangkan oleh <strong>Silvi Aryanti, M.Pd.</strong> (Sugiyono, 2009: 148 & Suharsimi Arikunto, 2013: 193).' },
+                    { id: 'pendek', tabTitle: 'Servis Pendek', title: '1. Servis Pendek (Manurung 2018)', description: 'Servis mengarahkan shuttlecock dekat net dengan konsentrasi tinggi. Kesempatan 20 kali.' },
+                    { id: 'panjang', tabTitle: 'Servis Panjang', title: '2. Servis Panjang (Bayu Tri Kurniawan 2018:54)', description: 'Servis melambung jauh dekat garis belakang lawan. Kesempatan 20 kali.' },
+                    { id: 'lob', tabTitle: 'Tes Lob', title: '3. Tes Lob (High Clear Test)', description: 'Pukulan melampaui tali setinggi 155 cm (8 kaki). Skor sasaran: 5, 4, 3, 2.' },
+                    { id: 'smash', tabTitle: 'Tes Smash', title: '4. Tes Smash (Smash Test)', description: 'Smash lurus/silang dari umpan forehand panjang testor sebanyak 20 kali.' }
+                ],
+
+                videos: JSON.parse(localStorage.getItem('sabawa_videos')) || [
+                    { id: 1, title: 'Teknik Servis Pendek Backhand', description: 'Panduan rincian gerakan', url: 'https://www.youtube.com/embed/5D2Y8JtK11A', category: 'Servis Pendek' },
+                    { id: 2, title: 'Teknik Servis Panjang Forehand', description: 'Panduan servis melambung tinggi', url: 'https://www.youtube.com/embed/sLd2vHnQO9k', category: 'Servis Panjang' }
+                ],
+
+                faqs: JSON.parse(localStorage.getItem('sabawa_faqs')) || [
+                    { q: "Apa itu aplikasi SA'BAWA?", a: "SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) adalah aplikasi web yang dikembangkan oleh tim Silvi Aryanti, M.Pd. untuk mengukur dan mengonversi hasil tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah.", open: false },
+                    { q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd.", open: false },
+                    { q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash).", open: false },
+                    { q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis.", open: false },
+                    { q: "Bagaimana cara login Admin?", a: "Gunakan username: 'admin' dan password: 'admin' untuk mengelola dan menghapus data tes.", open: false }
+                ],
+
+                // Admin states
+                adminSubTab: 'stats',
+                materiForm: { id: '', tabTitle: '', title: '', description: '' },
+                editMateriIndex: null,
+                videoForm: { id: null, title: '', description: '', url: '', category: '' },
+                editVideoIndex: null,
+                faqForm: { q: '', a: '' },
+                editFaqIndex: null,
+
                 searchQuery: '',
                 filterCategory: '',
                 selectedRecord: null,
@@ -952,18 +993,30 @@
 
                 records: [],
 
-                faqs: [
-                    { q: "Apa itu aplikasi SA'BAWA?", a: "SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) adalah aplikasi web yang dikembangkan oleh tim Silvi Aryanti, M.Pd. untuk mengukur dan mengonversi hasil tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah.", open: false },
-                    { q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd.", open: false },
-                    { q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash).", open: false },
-                    { q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis.", open: false },
-                    { q: "Bagaimana cara login Admin?", a: "Gunakan username: 'admin' dan password: 'admin' untuk mengelola dan menghapus data tes.", open: false }
-                ],
-
                 init() {
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
                     this.loadRecords();
+
+                    // Sync Favicon
+                    const fav = document.querySelector('link[rel="icon"]');
+                    if (fav) fav.href = this.appLogo;
+
+                    // Route guarding
+                    this.$watch('activeTab', value => {
+                        if (value === 'admin_dashboard' && !this.isAdmin) {
+                            this.activeTab = 'home';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Akses Ditolak',
+                                text: 'Anda harus masuk sebagai Admin untuk mengakses menu ini.',
+                                confirmButtonColor: '#7e22ce',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                customClass: { popup: 'rounded-3xl' }
+                            });
+                        }
+                    });
                 },
 
                 updateTime() {
@@ -1069,6 +1122,9 @@
                 logoutAdmin() {
                     this.isAdmin = false;
                     localStorage.removeItem('sabawa_admin');
+                    if (this.activeTab === 'admin_dashboard') {
+                        this.activeTab = 'home';
+                    }
                     Swal.fire({
                         icon: 'info',
                         title: 'Mode Admin Dinonaktifkan',
@@ -1293,6 +1349,187 @@
 
                 printAllReport() {
                     window.print();
+                },
+
+                // CRUD logic for Settings and Media
+                handleLogoUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    // Limit file size to 1.5MB for localStorage compatibility
+                    if (file.size > 1500000) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ukuran File Terlalu Besar',
+                            text: 'Harap gunakan logo dengan ukuran kurang dari 1.5MB.',
+                            confirmButtonColor: '#7e22ce',
+                            customClass: { popup: 'rounded-3xl' }
+                        });
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        this.appLogo = event.target.result;
+                        this.saveSettings();
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                saveSettings() {
+                    localStorage.setItem('sabawa_app_name', this.appName);
+                    localStorage.setItem('sabawa_app_subtitle', this.appSubtitle);
+                    localStorage.setItem('sabawa_app_logo', this.appLogo);
+                    localStorage.setItem('sabawa_about_desc', this.aboutDesc);
+                    localStorage.setItem('sabawa_team_members', JSON.stringify(this.teamMembers));
+                    localStorage.setItem('sabawa_materi', JSON.stringify(this.materi));
+                    localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
+                    localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
+
+                    // Sync Favicon
+                    const fav = document.querySelector('link[rel="icon"]');
+                    if (fav) fav.href = this.appLogo;
+                },
+
+                resetSettings() {
+                    Swal.fire({
+                        title: 'Reset ke Default?',
+                        text: 'Semua materi, video, FAQ, logo, dan pengaturan akan dikembalikan ke bawaan.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, reset!',
+                        cancelButtonText: 'Batal',
+                        customClass: { popup: 'rounded-3xl' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            localStorage.removeItem('sabawa_app_name');
+                            localStorage.removeItem('sabawa_app_subtitle');
+                            localStorage.removeItem('sabawa_app_logo');
+                            localStorage.removeItem('sabawa_about_desc');
+                            localStorage.removeItem('sabawa_team_members');
+                            localStorage.removeItem('sabawa_materi');
+                            localStorage.removeItem('sabawa_videos');
+                            localStorage.removeItem('sabawa_faqs');
+                            window.location.reload();
+                        }
+                    });
+                },
+
+                // CRUD Materi
+                saveMateri() {
+                    if (this.editMateriIndex !== null) {
+                        this.materi[this.editMateriIndex] = { ...this.materiForm };
+                        this.editMateriIndex = null;
+                    } else {
+                        if (!this.materiForm.id) {
+                            this.materiForm.id = 'materi_' + Date.now();
+                        }
+                        this.materi.push({ ...this.materiForm });
+                    }
+                    this.saveSettings();
+                    this.materiForm = { id: '', tabTitle: '', title: '', description: '' };
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Materi berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                },
+                editMateri(idx) {
+                    this.editMateriIndex = idx;
+                    this.materiForm = { ...this.materi[idx] };
+                },
+                deleteMateri(idx) {
+                    Swal.fire({
+                        title: 'Hapus Materi?',
+                        text: 'Materi ini akan dihapus secara permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        customClass: { popup: 'rounded-3xl' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.materi.splice(idx, 1);
+                            this.saveSettings();
+                            if (this.activeMateriTab === this.materiForm.id) {
+                                this.activeMateriTab = this.materi.length > 0 ? this.materi[0].id : '';
+                            }
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Materi berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                        }
+                    });
+                },
+
+                // CRUD Video
+                saveVideo() {
+                    if (this.editVideoIndex !== null) {
+                        this.videos[this.editVideoIndex] = { ...this.videoForm };
+                        this.editVideoIndex = null;
+                    } else {
+                        this.videoForm.id = Date.now();
+                        this.videos.push({ ...this.videoForm });
+                    }
+                    this.saveSettings();
+                    this.videoForm = { id: null, title: '', description: '', url: '', category: '' };
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Video berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                },
+                editVideo(idx) {
+                    this.editVideoIndex = idx;
+                    this.videoForm = { ...this.videos[idx] };
+                },
+                deleteVideo(idx) {
+                    Swal.fire({
+                        title: 'Hapus Video?',
+                        text: 'Video tutorial ini akan dihapus secara permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        customClass: { popup: 'rounded-3xl' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.videos.splice(idx, 1);
+                            this.saveSettings();
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Video berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                        }
+                    });
+                },
+
+                // CRUD FAQ
+                saveFaq() {
+                    if (this.editFaqIndex !== null) {
+                        this.faqs[this.editFaqIndex] = { ...this.faqForm, open: false };
+                        this.editFaqIndex = null;
+                    } else {
+                        this.faqs.push({ ...this.faqForm, open: false });
+                    }
+                    this.saveSettings();
+                    this.faqForm = { q: '', a: '' };
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'FAQ berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                },
+                editFaq(idx) {
+                    this.editFaqIndex = idx;
+                    this.faqForm = { q: this.faqs[idx].q, a: this.faqs[idx].a };
+                },
+                deleteFaq(idx) {
+                    Swal.fire({
+                        title: 'Hapus FAQ?',
+                        text: 'FAQ ini akan dihapus secara permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                        customClass: { popup: 'rounded-3xl' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.faqs.splice(idx, 1);
+                            this.saveSettings();
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'FAQ berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
+                        }
+                    });
                 }
             };
         }
