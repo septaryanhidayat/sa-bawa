@@ -131,7 +131,7 @@
                         <span class="bg-purple-100 text-purple-800 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider">
                             Aplikasi Resmi Asesmen Bulutangkis
                         </span>
-                        <span class="text-xs text-slate-500 font-medium">FKIP Penjaskes Sriwijaya</span>
+                        <span class="text-xs text-slate-500 font-medium">FKIP Penjaskes Universitas Sriwijaya</span>
                     </div>
 
                     <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight" x-text="appSettings.heroTitle"></h2>
