@@ -1471,7 +1471,7 @@
                     { id: 2, q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd." },
                     { id: 3, q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash)." },
                     { id: 4, q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis." },
-                    { id: 5, q: "Bagaimana cara login Admin?", a: "Silakan login dengan akun admin saja." }
+                    { id: 5, q: "Bagaimana cara login Admin?", a: "Silakan login dengan akun admin." }
                 ],
 
                 // Forms CRUD Objects
