@@ -261,7 +261,7 @@
                                 <!-- BANKING-STYLE QUICK STATS / SALDO SKOR WIDGET -->
                                 <div class="mt-4 pt-3 border-t border-purple-400/30 grid grid-cols-3 gap-2 text-center">
                                     <div class="bg-black/20 rounded-xl p-2 backdrop-blur-sm">
-                                        <p class="text-[9px] text-purple-200 uppercase font-semibold">Total Testee</p>
+                                        <p class="text-[9px] text-purple-200 uppercase font-semibold">Total Test</p>
                                         <p class="text-base font-extrabold text-white" x-text="records.length"></p>
                                     </div>
                                     <div class="bg-black/20 rounded-xl p-2 backdrop-blur-sm">
@@ -1471,7 +1471,7 @@
                     { id: 2, q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd." },
                     { id: 3, q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash)." },
                     { id: 4, q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis." },
-                    { id: 5, q: "Bagaimana cara login Admin?", a: "Gunakan username: 'admin' dan password: 'admin' untuk mengelola dan menghapus data tes serta mengedit konten." }
+                    { id: 5, q: "Bagaimana cara login Admin?", a: "Silakan login dengan akun admin saja." }
                 ],
 
                 // Forms CRUD Objects
