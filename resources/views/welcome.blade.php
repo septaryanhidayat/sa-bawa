@@ -79,8 +79,8 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-purple-50/40 to-indigo-50/30 text-slate-800 font-sans min-h-screen selection:bg-purple-600 selection:text-white" x-data="sabawaApp()">
 
-    <!-- TOP HEADER / CONTROL BAR (DESKTOP) -->
-    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100/80 shadow-sm no-print">
+    <!-- TOP HEADER / CONTROL BAR (DESKTOP ONLY) -->
+    <header class="hidden lg:block sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100/80 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo & Title -->
             <div class="flex items-center space-x-3 cursor-pointer" @click="activeTab = 'home'">
@@ -116,9 +116,9 @@
     </header>
 
     <!-- MAIN PAGE CONTENT CONTAINER -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto p-0 lg:px-8 lg:py-6">
         
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-start">
             
             <!-- DESKTOP LEFT SIDEBAR: BANNER WEBPAGE UMUM (Visible on Desktop LG screens) -->
             <div class="hidden lg:block lg:col-span-7 space-y-6">
@@ -219,14 +219,14 @@
                 </div>
             </div>
 
-            <!-- MOBILE APP FRAME CONTAINER (Sisi Kanan di Desktop LG / Full Width di Mobile MD & SM) -->
-            <div class="w-full lg:col-span-5 flex justify-center sticky top-20">
+            <!-- MOBILE APP FRAME CONTAINER (Sisi Kanan di Desktop LG / Full Width di Mobile & Tablet) -->
+            <div class="w-full lg:col-span-5 flex justify-center lg:sticky lg:top-20">
                 
                 <!-- MOBILE BANK FRAME CONTAINER -->
-                <div class="w-full max-w-md bg-white rounded-[36px] border-[8px] border-slate-200 shadow-2xl shadow-purple-900/10 overflow-hidden relative min-h-[760px] flex flex-col">
+                <div class="w-full min-h-screen bg-white lg:max-w-md lg:rounded-[36px] lg:border-[8px] lg:border-slate-200 lg:shadow-2xl lg:shadow-purple-900/10 overflow-hidden relative lg:min-h-[760px] flex flex-col">
 
-                    <!-- MOBILE STATUS BAR -->
-                    <div class="bg-slate-900 text-white px-6 py-2 flex justify-between items-center text-[11px] font-semibold no-print">
+                    <!-- MOBILE STATUS BAR (DESKTOP ONLY) -->
+                    <div class="hidden lg:flex bg-slate-900 text-white px-6 py-2 justify-between items-center text-[11px] font-semibold no-print">
                         <span x-text="currentTime">9:41</span>
                         <div class="flex items-center space-x-1.5">
                             <span class="text-[9px] bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono" x-text="appSettings.appName + ' MOBILE'"></span>
@@ -237,7 +237,7 @@
                     </div>
 
                     <!-- APP INNER SCREEN WRAPPER -->
-                    <div class="flex-1 overflow-y-auto pb-20 no-scrollbar bg-slate-50">
+                    <div class="flex-1 overflow-y-auto pb-24 lg:pb-20 no-scrollbar bg-slate-50">
 
                         <!-- 1. HOME TAB (MOBILE BANKING DASHBOARD STYLE) -->
                         <div x-show="activeTab === 'home'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4">
@@ -1045,7 +1045,7 @@
                     </div>
 
                     <!-- BOTTOM MOBILE BANK NAVIGATION BAR -->
-                    <nav class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
+                    <nav class="fixed lg:absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
                         <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
                             <i class="fa-solid fa-house text-base"></i>
                             <span class="text-[9px]">Home</span>
