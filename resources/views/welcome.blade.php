@@ -434,6 +434,16 @@
                                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-purple-600">
                                         </div>
 
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-700 mb-1">Asal Sekolah *</label>
+                                            <select x-model="form.sekolah" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-purple-600">
+                                                <option value="">-- Pilih Asal Sekolah --</option>
+                                                <template x-for="sch in schools" :key="sch.id">
+                                                    <option :value="sch.nama" x-text="sch.nama"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
                                         <div class="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label class="block text-[10px] font-bold text-slate-700 mb-1">NIM / NIS *</label>
@@ -564,11 +574,37 @@
                                 </div>
                             </div>
 
-                            <!-- SEARCH -->
-                            <div class="relative">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
-                                <input type="text" x-model="searchQuery" placeholder="Cari nama atau NIM..."
-                                       class="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-purple-600">
+                            <!-- SEARCH & FILTERS -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="relative">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                                    <input type="text" x-model="searchQuery" placeholder="Cari nama/NIM..."
+                                           class="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-purple-600">
+                                </div>
+                                <div class="relative">
+                                    <select x-model="filterSchool" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-8 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-purple-600 appearance-none">
+                                        <option value="">Semua Sekolah</option>
+                                        <template x-for="sch in schools" :key="sch.id">
+                                            <option :value="sch.nama" x-text="sch.nama"></option>
+                                        </template>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <select x-model="filterCategory" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-8 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-purple-600 appearance-none">
+                                        <option value="">Semua Kategori</option>
+                                        <option value="Sangat Tinggi">Sangat Tinggi</option>
+                                        <option value="Tinggi">Tinggi</option>
+                                        <option value="Sedang">Sedang</option>
+                                        <option value="Kurang">Kurang</option>
+                                        <option value="Sangat Kurang">Sangat Kurang</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- RECAP LIST -->
@@ -584,7 +620,7 @@
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <h4 class="font-extrabold text-xs text-slate-900" x-text="item.nama"></h4>
-                                                <p class="text-[10px] text-slate-500">NIM: <span x-text="item.nim"></span> • <span x-text="item.kelas"></span></p>
+                                                <p class="text-[10px] text-slate-500">NIM: <span x-text="item.nim"></span> • <span x-text="item.kelas"></span> <template x-if="item.sekolah"><span>• <span class="text-purple-700 font-semibold" x-text="item.sekolah"></span></span></template></p>
                                             </div>
                                             <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(item.evaluasiTotal)" x-text="item.evaluasiTotal"></span>
                                         </div>
@@ -821,6 +857,9 @@
                                 <button @click="adminSubTab = 'form'" :class="adminSubTab === 'form' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
                                     <i class="fa-solid fa-list-check mr-1"></i> Form & Data
                                 </button>
+                                <button @click="adminSubTab = 'sekolah'" :class="adminSubTab === 'sekolah' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-school mr-1"></i> Sekolah
+                                </button>
                                 <button @click="adminSubTab = 'materi'" :class="adminSubTab === 'materi' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
                                     <i class="fa-solid fa-book-open mr-1"></i> Materi
                                 </button>
@@ -863,6 +902,40 @@
                                                 <div class="flex space-x-1">
                                                     <button @click="editRecord(item)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
                                                     <button @click="deleteRecord(item.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION: KELOLA SEKOLAH -->
+                            <div x-show="adminSubTab === 'sekolah'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Daftar Sekolah</h3>
+                                        <button @click="schoolForm.id = null; schoolForm.nama = ''; showSchoolModal = true;" class="px-2.5 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-1">
+                                            <i class="fa-solid fa-plus"></i>
+                                            <span>Tambah Sekolah</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-if="schools.length === 0">
+                                            <div class="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                                                <p class="text-xs text-slate-500">Belum ada data sekolah.</p>
+                                            </div>
+                                        </template>
+                                        
+                                        <template x-for="sch in schools" :key="sch.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                                                <div class="flex items-center space-x-2">
+                                                    <i class="fa-solid fa-school text-purple-600"></i>
+                                                    <span class="font-bold text-slate-800" x-text="sch.nama"></span>
+                                                </div>
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="editSchool(sch)" class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-[10px] font-bold transition-all">Edit</button>
+                                                    <button @click="deleteSchool(sch.id)" class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-[10px] font-bold transition-all">Hapus</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -1373,6 +1446,29 @@
         </div>
     </div>
 
+    <!-- MODAL 8: SCHOOL / SEKOLAH CRUD MODAL -->
+    <div x-show="showSchoolModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <button @click="showSchoolModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-extrabold text-purple-950" x-text="schoolForm.id ? 'Edit Data Sekolah' : 'Tambah Sekolah Baru'"></h3>
+
+            <form @submit.prevent="saveSchool()" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Sekolah *</label>
+                    <input type="text" x-model="schoolForm.nama" required placeholder="SMP 4 Palembang"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                    Simpan Sekolah
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT APP LOGIC (ALPINE.JS CONTROLLER) -->
     <script>
         function sabawaApp() {
@@ -1387,6 +1483,7 @@
 
                 searchQuery: '',
                 filterCategory: '',
+                filterSchool: '',
                 selectedRecord: null,
                 activeVideo: null,
                 activeVideoTitle: '',
@@ -1397,6 +1494,11 @@
                 showVideoModal: false,
                 showFaqModal: false,
                 showResearcherModal: false,
+                showSchoolModal: false,
+
+                // Schools State
+                schools: [],
+                schoolForm: { id: null, nama: '' },
 
                 // App Settings & Customization
                 appSettings: {
@@ -1480,6 +1582,7 @@
                     nim: '',
                     gender: 'L',
                     kelas: 'Palembang A 2024',
+                    sekolah: '',
                     tanggal: new Date().toISOString().split('T')[0],
                     penguji: 'Silvi Aryanti, M.Pd.',
                     skorServisPendek: null,
@@ -1534,6 +1637,18 @@
                     // Load FAQs
                     const storedFaqs = localStorage.getItem('sabawa_faqs');
                     if (storedFaqs) this.faqs = JSON.parse(storedFaqs);
+
+                    // Load Schools
+                    const storedSchools = localStorage.getItem('sabawa_schools');
+                    if (storedSchools) {
+                        this.schools = JSON.parse(storedSchools);
+                    } else {
+                        this.schools = [
+                            { id: 1, nama: 'SMP 4' },
+                            { id: 2, nama: 'SMP 5' }
+                        ];
+                        localStorage.setItem('sabawa_schools', JSON.stringify(this.schools));
+                    }
                 },
 
                 saveRecordsToStorage() {
@@ -1546,6 +1661,7 @@
                     localStorage.setItem('sabawa_materis', JSON.stringify(this.materis));
                     localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
                     localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
+                    localStorage.setItem('sabawa_schools', JSON.stringify(this.schools));
                 },
 
                 seedSampleData() {
@@ -1556,6 +1672,7 @@
                             nim: '06121001001',
                             jenisKelamin: 'L',
                             kelas: 'Palembang A 2024',
+                            sekolah: 'SMP 4',
                             tanggal: '2026-07-20',
                             penguji: 'Silvi Aryanti, M.Pd.',
                             skorServisPendek: 85,
@@ -1574,6 +1691,7 @@
                             nim: '06121001015',
                             jenisKelamin: 'P',
                             kelas: 'Indralaya B 2024',
+                            sekolah: 'SMP 5',
                             tanggal: '2026-07-21',
                             penguji: 'Silvi Aryanti, M.Pd.',
                             skorServisPendek: 72,
@@ -1592,6 +1710,7 @@
                             nim: '06121001024',
                             jenisKelamin: 'L',
                             kelas: 'Palembang A 2024',
+                            sekolah: 'SMP 4',
                             tanggal: '2026-07-22',
                             penguji: 'Destriana, M.Pd.',
                             skorServisPendek: 58,
@@ -1712,6 +1831,7 @@
                         nim: this.form.nim,
                         jenisKelamin: this.form.gender,
                         kelas: this.form.kelas,
+                        sekolah: this.form.sekolah,
                         tanggal: this.form.tanggal,
                         penguji: this.form.penguji,
                         skorServisPendek: this.form.skorServisPendek,
@@ -1745,6 +1865,7 @@
 
                     this.form.nama = '';
                     this.form.nim = '';
+                    this.form.sekolah = '';
                     this.form.skorServisPendek = null;
                     this.form.skorServisPanjang = null;
                     this.form.skorLob = null;
@@ -1762,6 +1883,7 @@
                             nim: item.nim,
                             gender: item.jenisKelamin,
                             kelas: item.kelas,
+                            sekolah: item.sekolah || '',
                             tanggal: item.tanggal,
                             penguji: item.penguji,
                             skorServisPendek: item.skorServisPendek,
@@ -1945,6 +2067,60 @@
                     });
                 },
 
+                // SCHOOLS CRUD
+                saveSchool() {
+                    if (!this.schoolForm.nama.trim()) return;
+
+                    const schoolData = {
+                        id: this.schoolForm.id !== null ? this.schoolForm.id : Date.now(),
+                        nama: this.schoolForm.nama.trim()
+                    };
+
+                    const idx = this.schoolForm.id !== null 
+                        ? this.schools.findIndex(s => s.id === this.schoolForm.id)
+                        : -1;
+
+                    if (idx !== -1) {
+                        this.schools[idx] = schoolData;
+                    } else {
+                        this.schools.push(schoolData);
+                    }
+
+                    this.saveSettingsToStorage();
+                    this.schoolForm.id = null;
+                    this.schoolForm.nama = '';
+                    this.showSchoolModal = false;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Simpan Sekolah!',
+                        confirmButtonColor: '#7e22ce',
+                        timer: 1500
+                    });
+                },
+
+                editSchool(school) {
+                    this.schoolForm = { id: school.id, nama: school.nama };
+                    this.showSchoolModal = true;
+                },
+
+                deleteSchool(id) {
+                    Swal.fire({
+                        title: 'Hapus Sekolah ini?',
+                        text: 'Semua atlet yang terhubung dengan sekolah ini tidak akan terhapus, tetapi rincian sekolah mereka akan kosong.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        confirmButtonText: 'Ya, hapus'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.schools = this.schools.filter(s => s.id !== id);
+                            this.saveSettingsToStorage();
+                            Swal.fire({ icon: 'success', title: 'Sekolah Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                        }
+                    });
+                },
+
                 // APP SETTINGS
                 saveAppSettings() {
                     this.saveSettingsToStorage();
@@ -1962,18 +2138,20 @@
                     return this.records.filter(r => {
                         const matchQuery = !this.searchQuery || r.nama.toLowerCase().includes(this.searchQuery.toLowerCase()) || r.nim.includes(this.searchQuery);
                         const matchCat = !this.filterCategory || r.evaluasiTotal === this.filterCategory;
-                        return matchQuery && matchCat;
+                        const matchSchool = !this.filterSchool || r.sekolah === this.filterSchool;
+                        return matchQuery && matchCat && matchSchool;
                     });
                 },
 
                 getAverageScore() {
-                    if (this.records.length === 0) return '0';
-                    const sum = this.records.reduce((acc, r) => acc + (r.skorServisPendek || 0) + (r.skorServisPanjang || 0) + (r.skorLob || 0) + (r.skorSmash || 0), 0);
-                    return (sum / (this.records.length * 4)).toFixed(1);
+                    const items = this.filteredRecords;
+                    if (items.length === 0) return '0';
+                    const sum = items.reduce((acc, r) => acc + (r.skorServisPendek || 0) + (r.skorServisPanjang || 0) + (r.skorLob || 0) + (r.skorSmash || 0), 0);
+                    return (sum / (items.length * 4)).toFixed(1);
                 },
 
                 getCategoryCount(cat) {
-                    return this.records.filter(r => r.evaluasiTotal === cat).length;
+                    return this.filteredRecords.filter(r => r.evaluasiTotal === cat).length;
                 },
 
                 getCategoryBadgeClass(category) {
@@ -1997,7 +2175,8 @@
                 },
 
                 exportToCSV() {
-                    if (this.records.length === 0) {
+                    const items = this.filteredRecords;
+                    if (items.length === 0) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Peringatan',
@@ -2008,9 +2187,9 @@
                         });
                         return;
                     }
-                    let csv = 'Nama,NIM,Jenis Kelamin,Kelas,Tanggal,Servis Pendek,Norma SP,Servis Panjang,Norma SJ,Lob,Norma Lob,Smash,Norma Smash,Evaluasi Total\n';
-                    this.records.forEach(r => {
-                        csv += `"${r.nama}","${r.nim}","${r.jenisKelamin}","${r.kelas}","${r.tanggal}",${r.skorServisPendek || 0},"${r.normaServisPendek}",${r.skorServisPanjang || 0},"${r.normaServisPanjang}",${r.skorLob || 0},"${r.normaLob}",${r.skorSmash || 0},"${r.normaSmash}","${r.evaluasiTotal}"\n`;
+                    let csv = 'Nama,NIM,Jenis Kelamin,Kelas,Sekolah,Tanggal,Servis Pendek,Norma SP,Servis Panjang,Norma SJ,Lob,Norma Lob,Smash,Norma Smash,Evaluasi Total\n';
+                    items.forEach(r => {
+                        csv += `"${r.nama}","${r.nim}","${r.jenisKelamin}","${r.kelas}","${r.sekolah || '-'}","${r.tanggal}",${r.skorServisPendek || 0},"${r.normaServisPendek}",${r.skorServisPanjang || 0},"${r.normaServisPanjang}",${r.skorLob || 0},"${r.normaLob}",${r.skorSmash || 0},"${r.normaSmash}","${r.evaluasiTotal}"\n`;
                     });
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement('a');

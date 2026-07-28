@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('nim');
             $table->string('jenis_kelamin')->default('L');
             $table->string('kelas')->nullable();
+            $table->string('sekolah')->nullable();
             $table->date('tanggal');
             $table->string('penguji')->default('Silvi Aryanti, M.Pd.');
             $table->integer('skor_servis_pendek')->nullable();
