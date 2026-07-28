@@ -79,26 +79,28 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-purple-50/40 to-indigo-50/30 text-slate-800 font-sans min-h-screen selection:bg-purple-600 selection:text-white" x-data="sabawaApp()">
 
-    <!-- TOP HEADER / CONTROL BAR (DESKTOP) -->
-    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100/80 shadow-sm no-print">
+    <!-- TOP HEADER / CONTROL BAR (DESKTOP ONLY) -->
+    <header class="hidden lg:block sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100/80 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo & Title -->
             <div class="flex items-center space-x-3 cursor-pointer" @click="activeTab = 'home'">
-                <img src="/images/logo1.png" alt="SA'BAWA Logo" class="h-10 w-auto object-contain" onError="this.onerror=null; this.src='/images/logo1.png';">
+                <img :src="appSettings.appLogo" :alt="appSettings.appName" class="h-10 w-auto object-contain" onError="this.onerror=null; this.src='/images/logo1.png';">
                 <div class="hidden sm:block">
-                    <h1 class="font-extrabold text-lg text-purple-950 tracking-tight leading-none">SA'BAWA</h1>
-                    <p class="text-[10px] text-purple-700 font-semibold">Silvi Aryanti' Badminton Assessment WebApp</p>
+                    <h1 class="font-extrabold text-lg text-purple-950 tracking-tight leading-none" x-text="appSettings.appName"></h1>
+                    <p class="text-[10px] text-purple-700 font-semibold" x-text="appSettings.appSubtitle"></p>
                 </div>
             </div>
 
             <!-- Admin Badge & Controls -->
             <div class="flex items-center space-x-3">
                 <template x-if="isAdmin">
-                    <div class="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md">
-                        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
-                        <span><i class="fa-solid fa-user-shield mr-1"></i> Admin Logged In</span>
-                        <button @click="logoutAdmin()" class="ml-1 hover:text-emerald-200" title="Keluar Mode Admin">
-                            <i class="fa-solid fa-right-from-bracket"></i>
+                    <div class="flex items-center space-x-2">
+                        <button @click="activeTab = 'admin'" class="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md hover:from-emerald-700 hover:to-teal-700 transition-all">
+                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
+                            <span><i class="fa-solid fa-user-shield mr-1"></i> Dashboard Admin</span>
+                        </button>
+                        <button @click="logoutAdmin()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 rounded-full text-xs font-bold transition-all" title="Logout Mode Admin">
+                            <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
                         </button>
                     </div>
                 </template>
@@ -114,9 +116,9 @@
     </header>
 
     <!-- MAIN PAGE CONTENT CONTAINER -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto p-0 lg:px-8 lg:py-6">
         
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-start">
             
             <!-- DESKTOP LEFT SIDEBAR: BANNER WEBPAGE UMUM (Visible on Desktop LG screens) -->
             <div class="hidden lg:block lg:col-span-7 space-y-6">
@@ -127,100 +129,59 @@
                     
                     <div class="flex items-center space-x-3 mb-4">
                         <span class="bg-purple-100 text-purple-800 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider">
-                            Aplikasi Resmi Asesmen Bulutangkis
+                            Aplikasi Asesmen Bulutangkis
                         </span>
-                        <span class="text-xs text-slate-500 font-medium">FKIP Penjaskes Sriwijaya</span>
+                        <span class="text-xs text-slate-500 font-medium">FKIP Penjaskes Universitas Sriwijaya</span>
                     </div>
 
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                        Pengembangan Instrumen Penilaian Teknik Dasar Bulutangkis
-                    </h2>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-tight" x-text="appSettings.heroTitle"></h2>
 
-                    <p class="text-sm text-slate-600 mt-3 leading-relaxed">
-                        Aplikasi <strong>SA'BAWA</strong> (Silvi Aryanti' Badminton Assessment WebApp) dirancang khusus untuk mempermudah penilaian dan pengolahan skor tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah.
-                    </p>
+                    <p class="text-sm text-slate-600 mt-3 leading-relaxed" x-text="appSettings.heroDescription"></p>
 
                     <!-- RESEARCH TEAM HIGHLIGHT -->
                     <div class="mt-6 pt-6 border-t border-slate-100">
-                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Tim Peneliti & Pengembang</h4>
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tim Peneliti & Pengembang</h4>
+                            <template x-if="isAdmin">
+                                <button @click="activeTab = 'admin'; adminSubTab = 'about'" class="text-[11px] text-purple-700 hover:underline font-bold">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Tim
+                                </button>
+                            </template>
+                        </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-purple-50/70 p-3 rounded-2xl border border-purple-100 flex items-center space-x-3">
-    <!-- Foto profil otomatis ter-crop 1:1 -->
-    <img 
-        src="images/Picture1.png" 
-        alt="Foto Silvi Aryanti" 
-        class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" 
-    />
-    
-    <div>
-        <h5 class="font-extrabold text-xs text-purple-950">Silvi Aryanti, M.Pd.</h5>
-        <p class="text-[10px] text-purple-700 font-medium">Ketua Peneliti • NIDN 0021079101</p>
-    </div>
-</div>
-
-                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 flex items-center space-x-3">
-    <!-- Gambar otomatis di-crop rasio 1:1 -->
-    <img 
-        src="images/Picture2.png" 
-        alt="Foto Destriana" 
-        class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" 
-    />
-    
-    <div>
-        <h5 class="font-extrabold text-xs text-slate-900">Destriana, M.Pd.</h5>
-        <p class="text-[10px] text-slate-500">Anggota 1 • NIDN 0001128905</p>
-    </div>
-</div>
-
-                            <!-- Anggota 2: Fitri Agung Nanda -->
-<div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 flex items-center space-x-3">
-    <img 
-        src="images/Picture3.png" 
-        alt="Foto Fitri Agung Nanda" 
-        class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" 
-    />
-    <div>
-        <h5 class="font-extrabold text-xs text-slate-900">Fitri Agung Nanda, M.Pd.</h5>
-        <p class="text-[10px] text-slate-500">Anggota 2 • NIDN 0016039408</p>
-    </div>
-</div>
-
-<!-- Anggota 3: Soleh Solahuddin -->
-<div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 flex items-center space-x-3">
-    <img 
-        src="images/Picture4.png" 
-        alt="Foto Soleh Solahuddin" 
-        class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" 
-    />
-    <div>
-        <h5 class="font-extrabold text-xs text-slate-900">Soleh Solahuddin, M.Pd.</h5>
-        <p class="text-[10px] text-slate-500">Anggota 3 • NIDK 8898323419</p>
-    </div>
-</div>
+                            <template x-for="person in researchers" :key="person.id">
+                                <div :class="person.isLeader ? 'bg-purple-50/70 border-purple-100' : 'bg-slate-50 border-slate-200/80'" class="p-3 rounded-2xl border flex items-center space-x-3">
+                                    <img :src="person.photo || '/images/logo1.png'" :alt="person.name" class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                    <div class="overflow-hidden">
+                                        <h5 class="font-extrabold text-xs truncate" :class="person.isLeader ? 'text-purple-950' : 'text-slate-900'" x-text="person.name"></h5>
+                                        <p class="text-[10px] truncate" :class="person.isLeader ? 'text-purple-700 font-medium' : 'text-slate-500'" x-text="person.role"></p>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
                     <!-- FEATURE HIGHLIGHTS GRID -->
                     <div class="mt-6 grid grid-cols-4 gap-3 text-center">
-                        <div class="p-3 rounded-2xl bg-purple-50/60 border border-purple-100" @click="activeTab = 'form'" class="cursor-pointer">
+                        <div class="p-3 rounded-2xl bg-purple-50/60 border border-purple-100 cursor-pointer" @click="activeTab = 'form'">
                             <i class="fa-solid fa-pen-to-square text-xl text-purple-700 mb-1"></i>
                             <h5 class="text-xs font-bold text-slate-800">Form Asesmen</h5>
                             <p class="text-[10px] text-slate-500">Input 20x Tes</p>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-blue-50/60 border border-blue-100" @click="activeTab = 'data'" class="cursor-pointer">
+                        <div class="p-3 rounded-2xl bg-blue-50/60 border border-blue-100 cursor-pointer" @click="activeTab = 'data'">
                             <i class="fa-solid fa-calculator text-xl text-blue-700 mb-1"></i>
                             <h5 class="text-xs font-bold text-slate-800">Norma Otomatis</h5>
                             <p class="text-[10px] text-slate-500">5 Skala Kategori</p>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100" @click="activeTab = 'materi'" class="cursor-pointer">
+                        <div class="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100 cursor-pointer" @click="activeTab = 'materi'">
                             <i class="fa-solid fa-book-open text-xl text-emerald-700 mb-1"></i>
                             <h5 class="text-xs font-bold text-slate-800">Materi & Lapangan</h5>
                             <p class="text-[10px] text-slate-500">Pedoman Lengkap</p>
                         </div>
 
-                        <div class="p-3 rounded-2xl bg-rose-50/60 border border-rose-100" @click="activeTab = 'video'" class="cursor-pointer">
+                        <div class="p-3 rounded-2xl bg-rose-50/60 border border-rose-100 cursor-pointer" @click="activeTab = 'video'">
                             <i class="fa-solid fa-circle-play text-xl text-rose-700 mb-1"></i>
                             <h5 class="text-xs font-bold text-slate-800">Video Tutorial</h5>
                             <p class="text-[10px] text-slate-500">Panduan Peragaan</p>
@@ -258,17 +219,17 @@
                 </div>
             </div>
 
-            <!-- MOBILE APP FRAME CONTAINER (Sisi Kanan di Desktop LG / Full Width di Mobile MD & SM) -->
-            <div class="w-full lg:col-span-5 flex justify-center sticky top-20">
+            <!-- MOBILE APP FRAME CONTAINER (Sisi Kanan di Desktop LG / Full Width di Mobile & Tablet) -->
+            <div class="w-full lg:col-span-5 flex justify-center lg:sticky lg:top-20">
                 
                 <!-- MOBILE BANK FRAME CONTAINER -->
-                <div class="w-full max-w-md bg-white rounded-[36px] border-[8px] border-slate-200 shadow-2xl shadow-purple-900/10 overflow-hidden relative min-h-[760px] flex flex-col">
+                <div class="w-full min-h-screen bg-white lg:max-w-md lg:rounded-[36px] lg:border-[8px] lg:border-slate-200 lg:shadow-2xl lg:shadow-purple-900/10 overflow-hidden relative lg:min-h-[760px] flex flex-col">
 
-                    <!-- MOBILE STATUS BAR -->
-                    <div class="bg-slate-900 text-white px-6 py-2 flex justify-between items-center text-[11px] font-semibold no-print">
+                    <!-- MOBILE STATUS BAR (DESKTOP ONLY) -->
+                    <div class="hidden lg:flex bg-slate-900 text-white px-6 py-2 justify-between items-center text-[11px] font-semibold no-print">
                         <span x-text="currentTime">9:41</span>
                         <div class="flex items-center space-x-1.5">
-                            <span class="text-[9px] bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono">SA'BAWA MOBILE</span>
+                            <span class="text-[9px] bg-purple-600 text-white px-1.5 py-0.5 rounded font-mono" x-text="appSettings.appName + ' MOBILE'"></span>
                             <i class="fa-solid fa-signal text-[10px]"></i>
                             <i class="fa-solid fa-wifi text-[10px]"></i>
                             <i class="fa-solid fa-battery-full text-emerald-400 text-[10px]"></i>
@@ -276,7 +237,7 @@
                     </div>
 
                     <!-- APP INNER SCREEN WRAPPER -->
-                    <div class="flex-1 overflow-y-auto pb-20 no-scrollbar bg-slate-50">
+                    <div class="flex-1 overflow-y-auto pb-24 lg:pb-20 no-scrollbar bg-slate-50">
 
                         <!-- 1. HOME TAB (MOBILE BANKING DASHBOARD STYLE) -->
                         <div x-show="activeTab === 'home'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4">
@@ -291,16 +252,16 @@
                                             </span>
                                             <span class="text-[11px] text-purple-200 font-semibold" x-text="isAdmin ? 'Admin' : 'Guest'"></span>
                                         </div>
-                                        <h2 class="text-xl font-extrabold mt-1 tracking-tight">SA'BAWA Assessment</h2>
-                                        <p class="text-[11px] text-purple-200 mt-0.5">Badminton Assessment WebApp</p>
+                                        <h2 class="text-xl font-extrabold mt-1 tracking-tight" x-text="appSettings.appName + ' Assessment'"></h2>
+                                        <p class="text-[11px] text-purple-200 mt-0.5" x-text="appSettings.appSubtitle"></p>
                                     </div>
-                                    <img src="/images/logo1.png" alt="Logo" class="h-10 w-auto object-contain filter drop-shadow" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                    <img :src="appSettings.appLogo" :alt="appSettings.appName" class="h-10 w-auto object-contain filter drop-shadow" onError="this.onerror=null; this.src='/images/logo1.png';">
                                 </div>
 
                                 <!-- BANKING-STYLE QUICK STATS / SALDO SKOR WIDGET -->
                                 <div class="mt-4 pt-3 border-t border-purple-400/30 grid grid-cols-3 gap-2 text-center">
                                     <div class="bg-black/20 rounded-xl p-2 backdrop-blur-sm">
-                                        <p class="text-[9px] text-purple-200 uppercase font-semibold">Total Testee</p>
+                                        <p class="text-[9px] text-purple-200 uppercase font-semibold">Total Test</p>
                                         <p class="text-base font-extrabold text-white" x-text="records.length"></p>
                                     </div>
                                     <div class="bg-black/20 rounded-xl p-2 backdrop-blur-sm">
@@ -372,20 +333,20 @@
                                         <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">About</span>
                                     </button>
 
-                                    <!-- 7. Norma Penilaian -->
-                                    <button @click="activeTab = 'materi'; activeMateriTab = 'overview'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-chart-pie text-base"></i>
+                                    <!-- 7. Dashboard Admin (Pengganti Norma Tes) -->
+                                    <button @click="isAdmin ? activeTab = 'admin' : showLoginModal = true" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-purple-200 shadow-sm hover:border-purple-400 transition-all group">
+                                        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                                            <i class="fa-solid fa-user-gear text-base"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Norma Tes</span>
+                                        <span class="text-[10px] font-bold text-purple-900 mt-1.5 text-center" x-text="isAdmin ? 'Dashboard' : 'Admin'"></span>
                                     </button>
 
-                                    <!-- 8. Sample Generator -->
-                                    <button @click="seedSampleData()" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group" title="Muat Contoh Data Tes">
-                                        <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
+                                    <!-- 8. Logout (Pengganti Isi Contoh) -->
+                                    <button @click="isAdmin ? logoutAdmin() : showLoginModal = true" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-rose-200 shadow-sm hover:border-rose-300 transition-all group">
+                                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-right-from-bracket text-base"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Isi Contoh</span>
+                                        <span class="text-[10px] font-bold text-rose-700 mt-1.5 text-center" x-text="isAdmin ? 'Logout' : 'Login'"></span>
                                     </button>
                                 </div>
                             </div>
@@ -398,7 +359,7 @@
                                 <div>
                                     <h4 class="font-bold text-xs text-purple-950">Instrumen Penilaian Bulutangkis</h4>
                                     <p class="text-[10px] text-slate-600 mt-0.5 leading-relaxed">
-                                        Oleh <strong>Silvi Aryanti, M.Pd.</strong> & Tim. Mengukur 4 teknik dasar secara konversi norma otomatis.
+                                        Oleh <strong x-text="researchers[0] ? researchers[0].name : 'Silvi Aryanti, M.Pd.'"></strong> & Tim. Mengukur 4 teknik dasar secara konversi norma otomatis.
                                     </p>
                                 </div>
                             </div>
@@ -583,7 +544,7 @@
                                         <p class="text-[9px] text-purple-200 font-semibold uppercase">Evaluasi Akhir</p>
                                         <h3 class="text-base font-extrabold" x-text="calculateOverallCategory(form.skorServisPendek, form.skorServisPanjang, form.skorLob, form.skorSmash)"></h3>
                                     </div>
-                                    <button type="submit" class="bg-white text-purple-900 font-extrabold px-4 py-2 rounded-xl text-xs hover:bg-purple-50 shadow-md">
+                                    <button type="submit" class="bg-white text-purple-900 font-extrabold px-4 py-2 rounded-xl text-xs hover:bg-purple-50 shadow-md transition-all">
                                         <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Data
                                     </button>
                                 </div>
@@ -598,8 +559,8 @@
                                     <p class="text-[11px] text-slate-500">Daftar hasil tes keterampilan siswa</p>
                                 </div>
                                 <div class="flex space-x-1">
-                                    <button @click="exportToCSV()" class="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">CSV</button>
-                                    <button @click="printAllReport()" class="px-2.5 py-1 bg-purple-700 text-white rounded-lg text-[10px] font-bold">Cetak</button>
+                                    <button @click="exportToCSV()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm">CSV</button>
+                                    <button @click="printAllReport()" class="px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-[10px] font-bold shadow-sm">Cetak</button>
                                 </div>
                             </div>
 
@@ -638,9 +599,12 @@
                                         <div class="flex justify-between items-center text-[10px] pt-1">
                                             <span class="text-slate-400" x-text="item.tanggal"></span>
                                             <div class="flex space-x-1">
-                                                <button @click="openDetailModal(item)" class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded-lg">Rincian</button>
+                                                <button @click="openDetailModal(item)" class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded-lg hover:bg-purple-200">Rincian</button>
                                                 <template x-if="isAdmin">
-                                                    <button @click="deleteRecord(item.id)" class="px-2 py-0.5 bg-rose-100 text-rose-700 font-bold rounded-lg">Hapus</button>
+                                                    <div class="flex space-x-1">
+                                                        <button @click="editRecord(item)" class="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-lg hover:bg-blue-200">Edit</button>
+                                                        <button @click="deleteRecord(item.id)" class="px-2 py-0.5 bg-rose-100 text-rose-700 font-bold rounded-lg hover:bg-rose-200">Hapus</button>
+                                                    </div>
                                                 </template>
                                             </div>
                                         </div>
@@ -649,46 +613,57 @@
                             </div>
                         </div>
 
-                        <!-- 4. MATERI TAB -->
-                        <div x-show="activeTab === 'materi'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3">
-                            <h2 class="text-base font-extrabold text-purple-950">Materi Asesmen</h2>
-                            <div class="flex space-x-1 overflow-x-auto pb-1 no-scrollbar text-xs">
-                                <button @click="activeMateriTab = 'overview'" :class="activeMateriTab === 'overview' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200'" class="px-2.5 py-1 rounded-xl shrink-0">Overview</button>
-                                <button @click="activeMateriTab = 'pendek'" :class="activeMateriTab === 'pendek' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200'" class="px-2.5 py-1 rounded-xl shrink-0">Servis Pendek</button>
-                                <button @click="activeMateriTab = 'panjang'" :class="activeMateriTab === 'panjang' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200'" class="px-2.5 py-1 rounded-xl shrink-0">Servis Panjang</button>
-                                <button @click="activeMateriTab = 'lob'" :class="activeMateriTab === 'lob' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200'" class="px-2.5 py-1 rounded-xl shrink-0">Tes Lob</button>
-                                <button @click="activeMateriTab = 'smash'" :class="activeMateriTab === 'smash' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200'" class="px-2.5 py-1 rounded-xl shrink-0">Tes Smash</button>
+                        <!-- 4. MATERI TAB (CARD VIEW STACKED KE BAWAH WITH PHOTO & TEXT) -->
+                        <div x-show="activeTab === 'materi'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-base font-extrabold text-purple-950">Materi & Pedoman Tes</h2>
+                                    <p class="text-[11px] text-slate-500">Panduan lengkap pelaksanaan tes bulutangkis</p>
+                                </div>
+                                <template x-if="isAdmin">
+                                    <button @click="openAddMateriModal()" class="px-2.5 py-1.5 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md hover:bg-purple-800 flex items-center space-x-1">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Tambah</span>
+                                    </button>
+                                </template>
                             </div>
 
-                            <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs leading-relaxed space-y-2">
-                                <template x-if="activeMateriTab === 'overview'">
-                                    <div>
-                                        <h4 class="font-bold text-purple-900">Instrumen Penilaian Bulutangkis</h4>
-                                        <p class="text-slate-600 mt-1">Dikembangkan oleh <strong>Silvi Aryanti, M.Pd.</strong> (Sugiyono, 2009: 148 & Suharsimi Arikunto, 2013: 193).</p>
-                                    </div>
-                                </template>
-                                <template x-if="activeMateriTab === 'pendek'">
-                                    <div>
-                                        <h4 class="font-bold text-purple-900">1. Servis Pendek (Manurung 2018)</h4>
-                                        <p class="text-slate-600 mt-1">Servis mengarahkan shuttlecock dekat net dengan konsentrasi tinggi. Kesempatan 20 kali.</p>
-                                    </div>
-                                </template>
-                                <template x-if="activeMateriTab === 'panjang'">
-                                    <div>
-                                        <h4 class="font-bold text-purple-900">2. Servis Panjang (Bayu Tri Kurniawan 2018:54)</h4>
-                                        <p class="text-slate-600 mt-1">Servis melambung jauh dekat garis belakang lawan. Kesempatan 20 kali.</p>
-                                    </div>
-                                </template>
-                                <template x-if="activeMateriTab === 'lob'">
-                                    <div>
-                                        <h4 class="font-bold text-purple-900">3. Tes Lob (High Clear Test)</h4>
-                                        <p class="text-slate-600 mt-1">Pukulan melampaui tali setinggi 155 cm (8 kaki). Skor sasaran: 5, 4, 3, 2.</p>
-                                    </div>
-                                </template>
-                                <template x-if="activeMateriTab === 'smash'">
-                                    <div>
-                                        <h4 class="font-bold text-purple-900">4. Tes Smash (Smash Test)</h4>
-                                        <p class="text-slate-600 mt-1">Smash lurus/silang dari umpan forehand panjang testor sebanyak 20 kali.</p>
+                            <!-- CARDS STACKED DOWNWARD -->
+                            <div class="space-y-4">
+                                <template x-for="item in materis" :key="item.id">
+                                    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden space-y-3 transition-all hover:shadow-lg">
+                                        <!-- Photo Header -->
+                                        <div class="relative h-44 w-full bg-slate-900 overflow-hidden">
+                                            <img :src="item.photo || '/images/logo1.png'" :alt="item.judul" class="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-300" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                            <span class="absolute top-3 left-3 bg-purple-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow" x-text="item.kategori"></span>
+                                            
+                                            <template x-if="isAdmin">
+                                                <div class="absolute top-3 right-3 flex space-x-1 bg-white/90 backdrop-blur-md p-1 rounded-xl shadow">
+                                                    <button @click="openEditMateriModal(item)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-xs" title="Edit Materi">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button @click="deleteMateri(item.id)" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs" title="Hapus Materi">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        <!-- Card Text Details -->
+                                        <div class="p-4 pt-1 space-y-2">
+                                            <h3 class="font-extrabold text-sm text-slate-900 leading-snug" x-text="item.judul"></h3>
+                                            <p class="text-xs text-slate-600 leading-relaxed" x-text="item.deskripsi"></p>
+                                            
+                                            <template x-if="item.petunjuk">
+                                                <div class="mt-3 bg-purple-50/80 p-3 rounded-xl border border-purple-100 text-xs text-purple-950 flex items-start space-x-2">
+                                                    <i class="fa-solid fa-list-check text-purple-700 mt-0.5 shrink-0"></i>
+                                                    <div>
+                                                        <span class="font-bold text-purple-900 block text-[11px] mb-0.5">Petunjuk Tes:</span>
+                                                        <p class="text-[11px] text-slate-700 leading-normal" x-text="item.petunjuk"></p>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -696,59 +671,381 @@
 
                         <!-- 5. VIDEO TAB -->
                         <div x-show="activeTab === 'video'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3">
-                            <h2 class="text-base font-extrabold text-purple-950">Video Tutorial</h2>
-                            <div class="space-y-2">
-                                <div class="bg-white p-3 rounded-2xl border border-slate-200 flex items-center space-x-3 cursor-pointer" @click="openVideoModal('https://www.youtube.com/embed/5D2Y8JtK11A', 'Servis Pendek')">
-                                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 font-bold shrink-0">
-                                        <i class="fa-solid fa-play"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-xs text-slate-900">Teknik Servis Pendek Backhand</h4>
-                                        <p class="text-[10px] text-slate-500">Panduan rincian gerakan</p>
-                                    </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-base font-extrabold text-purple-950">Video Tutorial</h2>
+                                    <p class="text-[11px] text-slate-500">Panduan peragaan gerakan teknik</p>
                                 </div>
+                                <template x-if="isAdmin">
+                                    <button @click="openAddVideoModal()" class="px-2.5 py-1.5 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md hover:bg-purple-800 flex items-center space-x-1">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Tambah</span>
+                                    </button>
+                                </template>
+                            </div>
 
-                                <div class="bg-white p-3 rounded-2xl border border-slate-200 flex items-center space-x-3 cursor-pointer" @click="openVideoModal('https://www.youtube.com/embed/sLd2vHnQO9k', 'Servis Panjang')">
-                                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-700 font-bold shrink-0">
-                                        <i class="fa-solid fa-play"></i>
+                            <div class="space-y-3">
+                                <template x-for="v in videos" :key="v.id">
+                                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between space-x-3">
+                                        <div class="flex items-center space-x-3 cursor-pointer flex-1" @click="openVideoModal(v.url, v.judul)">
+                                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 font-bold shrink-0 shadow-sm">
+                                                <i class="fa-solid fa-play text-lg"></i>
+                                            </div>
+                                            <div>
+                                                <span class="text-[9px] bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded-full uppercase" x-text="v.kategori"></span>
+                                                <h4 class="font-bold text-xs text-slate-900 mt-0.5" x-text="v.judul"></h4>
+                                                <p class="text-[10px] text-slate-500 line-clamp-1" x-text="v.deskripsi"></p>
+                                            </div>
+                                        </div>
+
+                                        <template x-if="isAdmin">
+                                            <div class="flex space-x-1 shrink-0">
+                                                <button @click="openEditVideoModal(v)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg text-xs" title="Edit Video">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </button>
+                                                <button @click="deleteVideo(v.id)" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs" title="Hapus Video">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
-                                    <div>
-                                        <h4 class="font-bold text-xs text-slate-900">Teknik Servis Panjang Forehand</h4>
-                                        <p class="text-[10px] text-slate-500">Panduan servis melambung tinggi</p>
-                                    </div>
-                                </div>
+                                </template>
                             </div>
                         </div>
 
                         <!-- 6. FAQ TAB -->
                         <div x-show="activeTab === 'faq'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3">
-                            <h2 class="text-base font-extrabold text-purple-950">FAQ & Bantuan</h2>
-                            <div class="space-y-2">
-                                <template x-for="(faq, idx) in faqs" :key="idx">
-                                    <div class="bg-white p-3 rounded-2xl border border-slate-200 text-xs space-y-1">
-                                        <h4 class="font-bold text-purple-900" x-text="faq.q"></h4>
-                                        <p class="text-[11px] text-slate-600" x-text="faq.a"></p>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-base font-extrabold text-purple-950">FAQ & Bantuan</h2>
+                                    <p class="text-[11px] text-slate-500">Pertanyaan umum seputar penggunaan</p>
+                                </div>
+                                <template x-if="isAdmin">
+                                    <button @click="openAddFaqModal()" class="px-2.5 py-1.5 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-md hover:bg-purple-800 flex items-center space-x-1">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Tambah</span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                <template x-for="faq in faqs" :key="faq.id">
+                                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1.5 shadow-sm">
+                                        <div class="flex justify-between items-start">
+                                            <h4 class="font-bold text-purple-950 text-xs pr-2" x-text="faq.q"></h4>
+                                            <template x-if="isAdmin">
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditFaqModal(faq)" class="p-1 text-blue-600 hover:bg-blue-50 rounded text-xs">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button @click="deleteFaq(faq.id)" class="p-1 text-rose-600 hover:bg-rose-50 rounded text-xs">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <p class="text-[11px] text-slate-600 leading-relaxed" x-text="faq.a"></p>
                                     </div>
                                 </template>
                             </div>
                         </div>
 
                         <!-- 7. ABOUT TAB -->
-                        <div x-show="activeTab === 'about'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3 text-center">
-                            <img src="/images/logo1.png" alt="SA'BAWA" class="h-20 mx-auto object-contain" onError="this.onerror=null; this.src='/images/logo1.png
-                            g';">
-                            <h2 class="text-lg font-black text-purple-950">SA'BAWA WebApp</h2>
-                            <p class="text-xs text-slate-600">Pengembangan Instrumen Penilaian Teknik Dasar Bulutangkis Berbasis Aplikasi Web</p>
-                            <div class="bg-white p-3 rounded-2xl border border-slate-200 text-left space-y-1 text-xs">
-                                <p class="font-bold text-purple-900">Ketua: Silvi Aryanti, M.Pd.</p>
-                                <p class="text-[11px] text-slate-500">Anggota: 1. Destriana, M.Pd. | 2. Fitri Agung Nanda, M.Pd. | 3. Soleh Solahuddin, M.Pd.</p>
+                        <div x-show="activeTab === 'about'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4 text-center">
+                            <div class="bg-white p-5 rounded-3xl border border-purple-100 shadow-sm space-y-3">
+                                <img :src="appSettings.appLogo" :alt="appSettings.appName" class="h-20 mx-auto object-contain" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                <div>
+                                    <h2 class="text-xl font-black text-purple-950" x-text="appSettings.appName"></h2>
+                                    <p class="text-xs text-purple-700 font-semibold mt-0.5" x-text="appSettings.appSubtitle"></p>
+                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100" x-text="appSettings.heroDescription"></p>
                             </div>
+
+                            <div class="bg-white p-4 rounded-3xl border border-slate-200 text-left space-y-3 shadow-sm">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <h3 class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">Tim Peneliti & Pengembang</h3>
+                                    <template x-if="isAdmin">
+                                        <button @click="openAddResearcherModal()" class="text-[10px] bg-purple-700 text-white font-bold px-2.5 py-1 rounded-lg">
+                                            + Peneliti
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <div class="space-y-2.5">
+                                    <template x-for="person in researchers" :key="person.id">
+                                        <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                                            <div class="flex items-center space-x-3">
+                                                <img :src="person.photo || '/images/logo1.png'" :alt="person.name" class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                                <div>
+                                                    <h4 class="font-extrabold text-xs text-purple-950" x-text="person.name"></h4>
+                                                    <p class="text-[10px] text-slate-500" x-text="person.role"></p>
+                                                </div>
+                                            </div>
+                                            <template x-if="isAdmin">
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditResearcherModal(person)" class="p-1 text-blue-600 hover:bg-blue-100 rounded">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button @click="deleteResearcher(person.id)" class="p-1 text-rose-600 hover:bg-rose-100 rounded">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8. DASHBOARD KHUSUS ADMIN TAB -->
+                        <div x-show="activeTab === 'admin'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4">
+                            
+                            <!-- ADMIN PANEL HEADER -->
+                            <div class="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 p-5 rounded-3xl text-white shadow-xl space-y-2">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                                            <i class="fa-solid fa-user-shield mr-1"></i> Control Panel Admin
+                                        </span>
+                                        <h2 class="text-xl font-extrabold mt-1.5 tracking-tight">Dashboard Admin</h2>
+                                        <p class="text-[11px] text-purple-200">Kelola semua fitur & konten aplikasi dalam satu tempat</p>
+                                    </div>
+                                    <button @click="logoutAdmin()" class="bg-rose-500/30 hover:bg-rose-500/50 text-rose-200 border border-rose-400/30 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">
+                                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- SUB-TAB NAV PILLS ADMIN -->
+                            <div class="flex space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                                <button @click="adminSubTab = 'form'" :class="adminSubTab === 'form' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-list-check mr-1"></i> Form & Data
+                                </button>
+                                <button @click="adminSubTab = 'materi'" :class="adminSubTab === 'materi' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-book-open mr-1"></i> Materi
+                                </button>
+                                <button @click="adminSubTab = 'video'" :class="adminSubTab === 'video' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-circle-play mr-1"></i> Video
+                                </button>
+                                <button @click="adminSubTab = 'faq'" :class="adminSubTab === 'faq' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-circle-question mr-1"></i> FAQ
+                                </button>
+                                <button @click="adminSubTab = 'about'" :class="adminSubTab === 'about' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-users mr-1"></i> Tim Peneliti
+                                </button>
+                                <button @click="adminSubTab = 'settings'" :class="adminSubTab === 'settings' ? 'bg-purple-700 text-white font-bold shadow' : 'bg-white text-slate-700 border border-slate-200'" class="px-3 py-1.5 rounded-xl shrink-0">
+                                    <i class="fa-solid fa-gear mr-1"></i> Icon & Nama App
+                                </button>
+                            </div>
+
+                            <!-- SUB-SECTION 1: KELOLA FORM & REKAP DATA TES -->
+                            <div x-show="adminSubTab === 'form'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Rekap Penilaian</h3>
+                                        <div class="flex space-x-1.5">
+                                            <button @click="activeTab = 'form'" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                                                + Tambah Data
+                                            </button>
+                                            <button @click="seedSampleData()" class="px-2.5 py-1 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm" title="Muat Contoh Data Tes">
+                                                Reset Demo Data
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                                        <template x-for="item in records" :key="item.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                                                <div>
+                                                    <h4 class="font-bold text-slate-900" x-text="item.nama"></h4>
+                                                    <p class="text-[10px] text-slate-500">NIM: <span x-text="item.nim"></span> • Total: <span class="font-bold text-purple-700" x-text="item.evaluasiTotal"></span></p>
+                                                </div>
+                                                <div class="flex space-x-1">
+                                                    <button @click="editRecord(item)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
+                                                    <button @click="deleteRecord(item.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION 2: KELOLA MATERI -->
+                            <div x-show="adminSubTab === 'materi'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Cards Materi Asesmen</h3>
+                                        <button @click="openAddMateriModal()" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                                            + Tambah Materi
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-for="m in materis" :key="m.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between space-x-3 text-xs">
+                                                <div class="flex items-center space-x-3 overflow-hidden">
+                                                    <img :src="m.photo || '/images/logo1.png'" class="w-12 h-12 object-cover rounded-lg shrink-0 border" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                                    <div class="overflow-hidden">
+                                                        <span class="text-[9px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full" x-text="m.kategori"></span>
+                                                        <h4 class="font-bold text-slate-900 truncate mt-0.5" x-text="m.judul"></h4>
+                                                    </div>
+                                                </div>
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditMateriModal(m)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
+                                                    <button @click="deleteMateri(m.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION 3: KELOLA VIDEO -->
+                            <div x-show="adminSubTab === 'video'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Video Tutorial</h3>
+                                        <button @click="openAddVideoModal()" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                                            + Tambah Video
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-for="v in videos" :key="v.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                                                <div>
+                                                    <span class="text-[9px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full" x-text="v.kategori"></span>
+                                                    <h4 class="font-bold text-slate-900 mt-0.5" x-text="v.judul"></h4>
+                                                    <p class="text-[10px] text-slate-500 truncate max-w-xs" x-text="v.url"></p>
+                                                </div>
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditVideoModal(v)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
+                                                    <button @click="deleteVideo(v.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION 4: KELOLA FAQ -->
+                            <div x-show="adminSubTab === 'faq'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Pertanyaan FAQ</h3>
+                                        <button @click="openAddFaqModal()" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                                            + Tambah FAQ
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-for="f in faqs" :key="f.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                                                <div class="pr-2">
+                                                    <h4 class="font-bold text-slate-900" x-text="f.q"></h4>
+                                                    <p class="text-[10px] text-slate-500 line-clamp-1" x-text="f.a"></p>
+                                                </div>
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditFaqModal(f)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
+                                                    <button @click="deleteFaq(f.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION 5: KELOLA TIM PENELITI -->
+                            <div x-show="adminSubTab === 'about'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider">Kelola Nama & Foto Peneliti</h3>
+                                        <button @click="openAddResearcherModal()" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                                            + Tambah Peneliti
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <template x-for="person in researchers" :key="person.id">
+                                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between space-x-3 text-xs">
+                                                <div class="flex items-center space-x-3 overflow-hidden">
+                                                    <img :src="person.photo || '/images/logo1.png'" class="w-10 h-10 aspect-square object-cover rounded-xl shadow shrink-0" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                                    <div class="overflow-hidden">
+                                                        <h4 class="font-extrabold text-purple-950 truncate" x-text="person.name"></h4>
+                                                        <p class="text-[10px] text-slate-500 truncate" x-text="person.role"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex space-x-1 shrink-0">
+                                                    <button @click="openEditResearcherModal(person)" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[10px] font-bold">Edit</button>
+                                                    <button @click="deleteResearcher(person.id)" class="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Hapus</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUB-SECTION 6: PENGATURAN ICON & NAMA APLIKASI -->
+                            <div x-show="adminSubTab === 'settings'" class="space-y-3">
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                    <h3 class="font-extrabold text-xs text-purple-950 uppercase tracking-wider border-b border-slate-100 pb-2">
+                                        <i class="fa-solid fa-gears text-purple-600 mr-1"></i> Ganti Icon & Identitas Aplikasi
+                                    </h3>
+
+                                    <form @submit.prevent="saveAppSettings()" class="space-y-3 text-xs">
+                                        <!-- Preview Icon current -->
+                                        <div class="flex items-center space-x-4 p-3 bg-purple-50 rounded-2xl border border-purple-100">
+                                            <img :src="appSettings.appLogo" class="h-14 w-auto object-contain bg-white p-2 rounded-xl border shadow-sm" onError="this.onerror=null; this.src='/images/logo1.png';">
+                                            <div>
+                                                <h4 class="font-bold text-purple-950">Preview Logo Aplikasi</h4>
+                                                <p class="text-[10px] text-slate-500">Logo saat ini digunakan di header & kartu hasil tes</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">Nama Aplikasi *</label>
+                                            <input type="text" x-model="appSettings.appName" required placeholder="SA'BAWA"
+                                                   class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:border-purple-600">
+                                        </div>
+
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">Subtitle / Deskripsi Pendek *</label>
+                                            <input type="text" x-model="appSettings.appSubtitle" required placeholder="Silvi Aryanti' Badminton Assessment WebApp"
+                                                   class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                                        </div>
+
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">URL / Path Logo Icon *</label>
+                                            <input type="text" x-model="appSettings.appLogo" required placeholder="/images/logo1.png"
+                                                   class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                                            <p class="text-[10px] text-slate-400 mt-0.5">Bisa gunakan path lokal seperti <code>/images/logo1.png</code> atau link image online HTTPS.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">Judul Banner Utama (Hero Title)</label>
+                                            <textarea x-model="appSettings.heroTitle" rows="2"
+                                                      class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="block font-bold text-slate-700 mb-1">Deskripsi Banner Utama (Hero Description)</label>
+                                            <textarea x-model="appSettings.heroDescription" rows="3"
+                                                      class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                                        </div>
+
+                                        <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                                            <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Perubahan Pengaturan
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
 
                     <!-- BOTTOM MOBILE BANK NAVIGATION BAR -->
-                    <nav class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
+                    <nav class="fixed lg:absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
                         <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
                             <i class="fa-solid fa-house text-base"></i>
                             <span class="text-[9px]">Home</span>
@@ -794,9 +1091,9 @@
             </button>
 
             <div class="text-center space-y-1">
-                <img src="/images/logo1.png" alt="Logo SA'BAWA" class="h-14 mx-auto object-contain mb-2" onError="this.onerror=null; this.src='/images/logo1.png';">
-                <h3 class="text-base font-extrabold text-slate-900">Login Admin SA'BAWA</h3>
-                <p class="text-xs text-slate-500">Masuk untuk kelola & edit data hasil tes</p>
+                <img :src="appSettings.appLogo" :alt="appSettings.appName" class="h-14 mx-auto object-contain mb-2" onError="this.onerror=null; this.src='/images/logo1.png';">
+                <h3 class="text-base font-extrabold text-slate-900">Login Admin <span x-text="appSettings.appName"></span></h3>
+                <p class="text-xs text-slate-500">Masuk untuk kelola & edit semua data aplikasi</p>
             </div>
 
             <form @submit.prevent="loginAdmin()" class="space-y-3">
@@ -816,7 +1113,7 @@
                     <p class="text-rose-600 text-xs font-bold text-center" x-text="loginError"></p>
                 </template>
 
-                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md">
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md transition-all">
                     Masuk Admin
                 </button>
                 <p class="text-[10px] text-slate-400 text-center">Demo: Username <code>admin</code> / Password <code>admin</code></p>
@@ -833,9 +1130,9 @@
 
             <!-- CERTIFICATE HEADER -->
             <div class="text-center border-b border-slate-100 pb-3 space-y-1">
-                <img src="/images/logo1.png" alt="Logo" class="h-10 mx-auto object-contain mb-1" onError="this.onerror=null; this.src='/images/logo1.png';">
+                <img :src="appSettings.appLogo" :alt="appSettings.appName" class="h-10 mx-auto object-contain mb-1" onError="this.onerror=null; this.src='/images/logo1.png';">
                 <h3 class="text-sm font-black text-slate-900">KARTU HASIL TES BULUTANGKIS</h3>
-                <p class="text-[11px] text-purple-700 font-semibold">SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp)</p>
+                <p class="text-[11px] text-purple-700 font-semibold" x-text="appSettings.appName + ' (' + appSettings.appSubtitle + ')'"></p>
             </div>
 
             <!-- STUDENT IDENTITIES -->
@@ -888,7 +1185,7 @@
                         </div>
                         <div class="text-right text-xs">
                             <p class="text-purple-200 text-[10px]">Penguji:</p>
-                            <p class="font-bold underline" x-text="selectedRecord.penguji || 'Silvi Aryanti, M.Pd.'"></p>
+                            <p class="font-bold underline" x-text="selectedRecord.penguji || (researchers[0] ? researchers[0].name : 'Silvi Aryanti, M.Pd.')"></p>
                         </div>
                     </div>
 
@@ -918,58 +1215,175 @@
         </div>
     </div>
 
+    <!-- MODAL 4: MATERI CRUD MODAL -->
+    <div x-show="showMateriModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <button @click="showMateriModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-extrabold text-purple-950" x-text="materiForm.id ? 'Edit Materi Tes' : 'Tambah Materi Tes'"></h3>
+
+            <form @submit.prevent="saveMateri()" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Judul Materi *</label>
+                    <input type="text" x-model="materiForm.judul" required placeholder="Judul Tes / Keterampilan"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Kategori *</label>
+                    <input type="text" x-model="materiForm.kategori" required placeholder="Servis Pendek, Servis Panjang, Lob, Smash, dll"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">URL / Link Foto Cover</label>
+                    <input type="text" x-model="materiForm.photo" placeholder="https://images.unsplash.com/..."
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Deskripsi Materi *</label>
+                    <textarea x-model="materiForm.deskripsi" required rows="3" placeholder="Penjelasan rincian materi tes..."
+                              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Petunjuk Pelaksanaan Tes</label>
+                    <textarea x-model="materiForm.petunjuk" rows="2" placeholder="Petunjuk khusus bagi teste / penguji..."
+                              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                    Simpan Materi
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: VIDEO CRUD MODAL -->
+    <div x-show="showVideoModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <button @click="showVideoModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-extrabold text-purple-950" x-text="videoForm.id ? 'Edit Video Tutorial' : 'Tambah Video Tutorial'"></h3>
+
+            <form @submit.prevent="saveVideo()" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Judul Video *</label>
+                    <input type="text" x-model="videoForm.judul" required placeholder="Judul Video Tutorial"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Kategori *</label>
+                    <input type="text" x-model="videoForm.kategori" required placeholder="Teknik Dasar, Servis, Lob, Smash"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Link Embed YouTube URL *</label>
+                    <input type="text" x-model="videoForm.url" required placeholder="https://www.youtube.com/embed/..."
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Deskripsi Singkat</label>
+                    <textarea x-model="videoForm.deskripsi" rows="2" placeholder="Keterangan isi video..."
+                              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                    Simpan Video
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: FAQ CRUD MODAL -->
+    <div x-show="showFaqModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <button @click="showFaqModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-extrabold text-purple-950" x-text="faqForm.id ? 'Edit Pertanyaan FAQ' : 'Tambah Pertanyaan FAQ'"></h3>
+
+            <form @submit.prevent="saveFaq()" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Pertanyaan *</label>
+                    <input type="text" x-model="faqForm.q" required placeholder="Apa itu aplikasi SA'BAWA?"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Jawaban *</label>
+                    <textarea x-model="faqForm.a" required rows="3" placeholder="Penjelasan lengkap jawaban..."
+                              class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                    Simpan FAQ
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 7: RESEARCHER / TIM PENELITI CRUD MODAL -->
+    <div x-show="showResearcherModal" x-transition.opacity class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl relative border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <button @click="showResearcherModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-extrabold text-purple-950" x-text="researcherForm.id ? 'Edit Data Peneliti' : 'Tambah Peneliti Baru'"></h3>
+
+            <form @submit.prevent="saveResearcher()" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Lengkap & Gelar *</label>
+                    <input type="text" x-model="researcherForm.name" required placeholder="Silvi Aryanti, M.Pd."
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Peran / NIDN / Jabatan *</label>
+                    <input type="text" x-model="researcherForm.role" required placeholder="Ketua Peneliti • NIDN 0021079101"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">URL / Path Foto Peneliti *</label>
+                    <input type="text" x-model="researcherForm.photo" required placeholder="images/Picture1.png"
+                           class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-purple-600">
+                    <p class="text-[10px] text-slate-400 mt-0.5">Bisa gunakan path gambar seperti <code>images/Picture1.png</code> atau link foto online.</p>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="isLeader" x-model="researcherForm.isLeader" class="rounded text-purple-700 focus:ring-purple-600">
+                    <label for="isLeader" class="text-slate-700 font-bold">Jadikan Ketua Peneliti Utama</label>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold shadow-md transition-all">
+                    Simpan Data Peneliti
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT APP LOGIC (ALPINE.JS CONTROLLER) -->
     <script>
         function sabawaApp() {
             return {
                 activeTab: 'home',
-                activeMateriTab: 'overview',
+                adminSubTab: 'form',
                 isAdmin: localStorage.getItem('sabawa_admin') === 'true',
                 showLoginModal: false,
                 currentTime: '',
                 loginForm: { username: 'admin', password: '' },
                 loginError: '',
-
-                appName: localStorage.getItem('sabawa_app_name') || "SA'BAWA",
-                appSubtitle: localStorage.getItem('sabawa_app_subtitle') || "Silvi Aryanti' Badminton Assessment WebApp",
-                appLogo: localStorage.getItem('sabawa_app_logo') || "/images/logo1.png",
-                aboutDesc: localStorage.getItem('sabawa_about_desc') || "Pengembangan Instrumen Penilaian Teknik Dasar Bulutangkis Berbasis Aplikasi Web",
-                teamMembers: JSON.parse(localStorage.getItem('sabawa_team_members')) || [
-                    { name: "Silvi Aryanti, M.Pd.", role: "Ketua Peneliti", nidn: "NIDN 0021079101", img: "images/Picture1.png" },
-                    { name: "Destriana, M.Pd.", role: "Anggota 1", nidn: "NIDN 0001128905", img: "images/Picture2.png" },
-                    { name: "Fitri Agung Nanda, M.Pd.", role: "Anggota 2", nidn: "NIDN 0016039408", img: "images/Picture3.png" },
-                    { name: "Soleh Solahuddin, M.Pd.", role: "Anggota 3", nidn: "NIDK 8898323419", img: "images/Picture4.png" }
-                ],
-
-                materi: JSON.parse(localStorage.getItem('sabawa_materi')) || [
-                    { id: 'overview', tabTitle: 'Overview', title: 'Instrumen Penilaian Bulutangkis', description: 'Dikembangkan oleh <strong>Silvi Aryanti, M.Pd.</strong> (Sugiyono, 2009: 148 & Suharsimi Arikunto, 2013: 193).' },
-                    { id: 'pendek', tabTitle: 'Servis Pendek', title: '1. Servis Pendek (Manurung 2018)', description: 'Servis mengarahkan shuttlecock dekat net dengan konsentrasi tinggi. Kesempatan 20 kali.' },
-                    { id: 'panjang', tabTitle: 'Servis Panjang', title: '2. Servis Panjang (Bayu Tri Kurniawan 2018:54)', description: 'Servis melambung jauh dekat garis belakang lawan. Kesempatan 20 kali.' },
-                    { id: 'lob', tabTitle: 'Tes Lob', title: '3. Tes Lob (High Clear Test)', description: 'Pukulan melampaui tali setinggi 155 cm (8 kaki). Skor sasaran: 5, 4, 3, 2.' },
-                    { id: 'smash', tabTitle: 'Tes Smash', title: '4. Tes Smash (Smash Test)', description: 'Smash lurus/silang dari umpan forehand panjang testor sebanyak 20 kali.' }
-                ],
-
-                videos: JSON.parse(localStorage.getItem('sabawa_videos')) || [
-                    { id: 1, title: 'Teknik Servis Pendek Backhand', description: 'Panduan rincian gerakan', url: 'https://www.youtube.com/embed/5D2Y8JtK11A', category: 'Servis Pendek' },
-                    { id: 2, title: 'Teknik Servis Panjang Forehand', description: 'Panduan servis melambung tinggi', url: 'https://www.youtube.com/embed/sLd2vHnQO9k', category: 'Servis Panjang' }
-                ],
-
-                faqs: JSON.parse(localStorage.getItem('sabawa_faqs')) || [
-                    { q: "Apa itu aplikasi SA'BAWA?", a: "SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) adalah aplikasi web yang dikembangkan oleh tim Silvi Aryanti, M.Pd. untuk mengukur dan mengonversi hasil tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah.", open: false },
-                    { q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd.", open: false },
-                    { q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash).", open: false },
-                    { q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis.", open: false },
-                    { q: "Bagaimana cara login Admin?", a: "Gunakan username: 'admin' dan password: 'admin' untuk mengelola dan menghapus data tes.", open: false }
-                ],
-
-                // Admin states
-                adminSubTab: 'stats',
-                materiForm: { id: '', tabTitle: '', title: '', description: '' },
-                editMateriIndex: null,
-                videoForm: { id: null, title: '', description: '', url: '', category: '' },
-                editVideoIndex: null,
-                faqForm: { q: '', a: '' },
-                editFaqIndex: null,
 
                 searchQuery: '',
                 filterCategory: '',
@@ -978,6 +1392,89 @@
                 activeVideoTitle: '',
                 editingIndex: null,
 
+                // Modal Toggle States
+                showMateriModal: false,
+                showVideoModal: false,
+                showFaqModal: false,
+                showResearcherModal: false,
+
+                // App Settings & Customization
+                appSettings: {
+                    appName: "SA'BAWA",
+                    appSubtitle: "Silvi Aryanti' Badminton Assessment WebApp",
+                    appLogo: "/images/logo1.png",
+                    heroTitle: "Pengembangan Instrumen Penilaian Teknik Dasar Bulutangkis",
+                    heroDescription: "Aplikasi SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) dirancang khusus untuk mempermudah penilaian dan pengolahan skor tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah."
+                },
+
+                // Researchers / Tim Peneliti State
+                researchers: [
+                    { id: 1, name: "Silvi Aryanti, M.Pd.", role: "Ketua Peneliti • NIDN 0021079101", photo: "images/Picture1.png", isLeader: true },
+                    { id: 2, name: "Destriana, M.Pd.", role: "Anggota 1 • NIDN 0001128905", photo: "images/Picture2.png", isLeader: false },
+                    { id: 3, name: "Fitri Agung Nanda, M.Pd.", role: "Anggota 2 • NIDN 0016039408", photo: "images/Picture3.png", isLeader: false },
+                    { id: 4, name: "Soleh Solahuddin, M.Pd.", role: "Anggota 3 • NIDK 8898323419", photo: "images/Picture4.png", isLeader: false }
+                ],
+
+                // Materis List State
+                materis: [
+                    {
+                        id: 1,
+                        judul: "Overview Instrumen Penilaian Bulutangkis",
+                        kategori: "Umum",
+                        photo: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
+                        deskripsi: "Instrumen Penilaian Bulutangkis ini dikembangkan oleh Silvi Aryanti, M.Pd. dan tim mengacu pada metode penelitian R&D (Sugiyono, 2009: 148 & Suharsimi Arikunto, 2013: 193). Mengukur 4 keterampilan utama: Servis Pendek, Servis Panjang, Pukulan Lob, dan Pukulan Smash.",
+                        petunjuk: "Setiap teste melakukan 20 kali percobaan pada masing-masing item tes. Penguji mencatat skor per percobaan pada form."
+                    },
+                    {
+                        id: 2,
+                        judul: "1. Servis Pendek (Short Serve Test)",
+                        kategori: "Servis Pendek",
+                        photo: "https://images.unsplash.com/photo-1521537634581-0ddea2efe2b6?auto=format&fit=crop&w=800&q=80",
+                        deskripsi: "Tes Servis Pendek (Manurung 2018) bertujuan mengukur akurasi dan ketepatan servis backhand/forehand tipis di atas net menuju area sasaran bernilai 5, 4, 3, 2, dan 1.",
+                        petunjuk: "Subjek berdiri di petak servis dan melakukan 20 kali servis pendek berurutan. Bola yang menyangkut di net mendapat skor 0."
+                    },
+                    {
+                        id: 3,
+                        judul: "2. Servis Panjang (Long Serve Test)",
+                        kategori: "Servis Panjang",
+                        photo: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80",
+                        deskripsi: "Tes Servis Panjang (Bayu Tri Kurniawan 2018:54) mengukur kemampuan melambungkan shuttlecock jauh dan tinggi menuju garis belakang batas lapangan lawan.",
+                        petunjuk: "Subjek diberi kesempatan 20 kali melakukan servis melambung tinggi. Nilai dicatat sesuai angka pada target garis belakang."
+                    },
+                    {
+                        id: 4,
+                        judul: "3. Tes Pukulan Lob (High Clear Test)",
+                        kategori: "Tes Lob",
+                        photo: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
+                        deskripsi: "Pukulan Lob mengukur kemampuan mengembalikan shuttlecock melambung tinggi melampaui tali batas setinggi 155 cm (8 kaki) menuju lapangan belakang lawan.",
+                        petunjuk: "Shuttlecock diumpan oleh penguji, subjek melakukan pukulan lob 20 kali. Bola yang melewati bawah tali dianggap tidak sah (skor 0)."
+                    },
+                    {
+                        id: 5,
+                        judul: "4. Tes Pukulan Smash (Smash Test)",
+                        kategori: "Tes Smash",
+                        photo: "https://images.unsplash.com/photo-1613918108466-292b78a8ef95?auto=format&fit=crop&w=800&q=80",
+                        deskripsi: "Tes Smash mengukur kecepatan, ketepatan, dan menukiknya pukulan smash forehand ke area sasaran bernilai pada lapangan lawan.",
+                        petunjuk: "Subjek menerima 20 umpan lob tinggi dari penguji dan wajib melakukan smash keras menukik ke area target lawan."
+                    }
+                ],
+
+                // Videos List State
+                videos: [
+                    { id: 1, judul: "Teknik Servis Pendek Backhand", kategori: "Servis Pendek", url: "https://www.youtube.com/embed/5D2Y8JtK11A", deskripsi: "Panduan rincian gerakan dan posisi pegangan raket untuk servis pendek." },
+                    { id: 2, judul: "Teknik Servis Panjang Forehand", kategori: "Servis Panjang", url: "https://www.youtube.com/embed/sLd2vHnQO9k", deskripsi: "Panduan servis melambung tinggi jauh ke belakang lapangan lawan." }
+                ],
+
+                // FAQs List State
+                faqs: [
+                    { id: 1, q: "Apa itu aplikasi SA'BAWA?", a: "SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) adalah aplikasi web yang dikembangkan oleh tim Silvi Aryanti, M.Pd. untuk mengukur dan mengonversi hasil tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah." },
+                    { id: 2, q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd." },
+                    { id: 3, q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash)." },
+                    { id: 4, q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis." },
+                    { id: 5, q: "Bagaimana cara login Admin?", a: "Silakan login dengan akun admin." }
+                ],
+
+                // Forms CRUD Objects
                 form: {
                     nama: '',
                     nim: '',
@@ -991,32 +1488,17 @@
                     skorSmash: null
                 },
 
+                materiForm: { id: null, judul: '', kategori: '', photo: '', deskripsi: '', petunjuk: '' },
+                videoForm: { id: null, judul: '', kategori: '', url: '', deskripsi: '' },
+                faqForm: { id: null, q: '', a: '' },
+                researcherForm: { id: null, name: '', role: '', photo: '', isLeader: false },
+
                 records: [],
 
                 init() {
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
-                    this.loadRecords();
-
-                    // Sync Favicon
-                    const fav = document.querySelector('link[rel="icon"]');
-                    if (fav) fav.href = this.appLogo;
-
-                    // Route guarding
-                    this.$watch('activeTab', value => {
-                        if (value === 'admin_dashboard' && !this.isAdmin) {
-                            this.activeTab = 'home';
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Akses Ditolak',
-                                text: 'Anda harus masuk sebagai Admin untuk mengakses menu ini.',
-                                confirmButtonColor: '#7e22ce',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                customClass: { popup: 'rounded-3xl' }
-                            });
-                        }
-                    });
+                    this.loadAllData();
                 },
 
                 updateTime() {
@@ -1024,17 +1506,46 @@
                     this.currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 },
 
-                loadRecords() {
-                    const stored = localStorage.getItem('sabawa_records');
-                    if (stored) {
-                        this.records = JSON.parse(stored);
+                loadAllData() {
+                    // Load Records
+                    const storedRecords = localStorage.getItem('sabawa_records');
+                    if (storedRecords) {
+                        this.records = JSON.parse(storedRecords);
                     } else {
                         this.seedSampleData();
                     }
+
+                    // Load Settings
+                    const storedSettings = localStorage.getItem('sabawa_settings');
+                    if (storedSettings) this.appSettings = JSON.parse(storedSettings);
+
+                    // Load Researchers
+                    const storedResearchers = localStorage.getItem('sabawa_researchers');
+                    if (storedResearchers) this.researchers = JSON.parse(storedResearchers);
+
+                    // Load Materis
+                    const storedMateris = localStorage.getItem('sabawa_materis');
+                    if (storedMateris) this.materis = JSON.parse(storedMateris);
+
+                    // Load Videos
+                    const storedVideos = localStorage.getItem('sabawa_videos');
+                    if (storedVideos) this.videos = JSON.parse(storedVideos);
+
+                    // Load FAQs
+                    const storedFaqs = localStorage.getItem('sabawa_faqs');
+                    if (storedFaqs) this.faqs = JSON.parse(storedFaqs);
                 },
 
                 saveRecordsToStorage() {
                     localStorage.setItem('sabawa_records', JSON.stringify(this.records));
+                },
+
+                saveSettingsToStorage() {
+                    localStorage.setItem('sabawa_settings', JSON.stringify(this.appSettings));
+                    localStorage.setItem('sabawa_researchers', JSON.stringify(this.researchers));
+                    localStorage.setItem('sabawa_materis', JSON.stringify(this.materis));
+                    localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
+                    localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
                 },
 
                 seedSampleData() {
@@ -1103,16 +1614,15 @@
                         localStorage.setItem('sabawa_admin', 'true');
                         this.showLoginModal = false;
                         this.loginError = '';
+                        this.activeTab = 'admin';
                         Swal.fire({
                             icon: 'success',
-                            title: 'Login Berhasil',
-                            text: "Selamat datang kembali, Admin SA'BAWA!",
+                            title: 'Login Admin Berhasil',
+                            text: "Selamat datang kembali di Dashboard Admin " + this.appSettings.appName + "!",
                             confirmButtonColor: '#7e22ce',
                             timer: 2000,
                             timerProgressBar: true,
-                            customClass: {
-                                popup: 'rounded-3xl'
-                            }
+                            customClass: { popup: 'rounded-3xl' }
                         });
                     } else {
                         this.loginError = 'Username atau Password salah!';
@@ -1122,19 +1632,15 @@
                 logoutAdmin() {
                     this.isAdmin = false;
                     localStorage.removeItem('sabawa_admin');
-                    if (this.activeTab === 'admin_dashboard') {
-                        this.activeTab = 'home';
-                    }
+                    if (this.activeTab === 'admin') this.activeTab = 'home';
                     Swal.fire({
                         icon: 'info',
-                        title: 'Mode Admin Dinonaktifkan',
-                        text: 'Anda telah keluar dari Mode Admin.',
+                        title: 'Logout Admin',
+                        text: 'Anda telah keluar dari Dashboard Admin.',
                         confirmButtonColor: '#7e22ce',
                         timer: 2000,
                         timerProgressBar: true,
-                        customClass: {
-                            popup: 'rounded-3xl'
-                        }
+                        customClass: { popup: 'rounded-3xl' }
                     });
                 },
 
@@ -1234,9 +1740,7 @@
                         confirmButtonColor: '#7e22ce',
                         timer: 2000,
                         timerProgressBar: true,
-                        customClass: {
-                            popup: 'rounded-3xl'
-                        }
+                        customClass: { popup: 'rounded-3xl' }
                     });
 
                     this.form.nama = '';
@@ -1249,6 +1753,26 @@
                     this.activeTab = 'data';
                 },
 
+                editRecord(item) {
+                    const idx = this.records.findIndex(r => r.id === item.id);
+                    if (idx !== -1) {
+                        this.editingIndex = idx;
+                        this.form = {
+                            nama: item.nama,
+                            nim: item.nim,
+                            gender: item.jenisKelamin,
+                            kelas: item.kelas,
+                            tanggal: item.tanggal,
+                            penguji: item.penguji,
+                            skorServisPendek: item.skorServisPendek,
+                            skorServisPanjang: item.skorServisPanjang,
+                            skorLob: item.skorLob,
+                            skorSmash: item.skorSmash
+                        };
+                        this.activeTab = 'form';
+                    }
+                },
+
                 deleteRecord(id) {
                     Swal.fire({
                         title: 'Apakah Anda yakin?',
@@ -1259,9 +1783,7 @@
                         cancelButtonColor: '#64748b',
                         confirmButtonText: 'Ya, hapus!',
                         cancelButtonText: 'Batal',
-                        customClass: {
-                            popup: 'rounded-3xl'
-                        }
+                        customClass: { popup: 'rounded-3xl' }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             this.records = this.records.filter(r => r.id !== id);
@@ -1273,11 +1795,166 @@
                                 confirmButtonColor: '#7e22ce',
                                 timer: 2000,
                                 timerProgressBar: true,
-                                customClass: {
-                                    popup: 'rounded-3xl'
-                                }
+                                customClass: { popup: 'rounded-3xl' }
                             });
                         }
+                    });
+                },
+
+                // CRUD MATERI
+                openAddMateriModal() {
+                    this.materiForm = { id: null, judul: '', kategori: 'Servis Pendek', photo: '', deskripsi: '', petunjuk: '' };
+                    this.showMateriModal = true;
+                },
+                openEditMateriModal(item) {
+                    this.materiForm = { ...item };
+                    this.showMateriModal = true;
+                },
+                saveMateri() {
+                    if (this.materiForm.id) {
+                        const idx = this.materis.findIndex(m => m.id === this.materiForm.id);
+                        if (idx !== -1) this.materis[idx] = { ...this.materiForm };
+                    } else {
+                        this.materis.push({ ...this.materiForm, id: Date.now() });
+                    }
+                    this.saveSettingsToStorage();
+                    this.showMateriModal = false;
+                    Swal.fire({ icon: 'success', title: 'Materi Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                },
+                deleteMateri(id) {
+                    Swal.fire({
+                        title: 'Hapus Materi ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        confirmButtonText: 'Ya, hapus'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.materis = this.materis.filter(m => m.id !== id);
+                            this.saveSettingsToStorage();
+                            Swal.fire({ icon: 'success', title: 'Materi Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                        }
+                    });
+                },
+
+                // CRUD VIDEO
+                openAddVideoModal() {
+                    this.videoForm = { id: null, judul: '', kategori: 'Teknik Dasar', url: '', deskripsi: '' };
+                    this.showVideoModal = true;
+                },
+                openEditVideoModal(item) {
+                    this.videoForm = { ...item };
+                    this.showVideoModal = true;
+                },
+                saveVideo() {
+                    if (this.videoForm.id) {
+                        const idx = this.videos.findIndex(v => v.id === this.videoForm.id);
+                        if (idx !== -1) this.videos[idx] = { ...this.videoForm };
+                    } else {
+                        this.videos.push({ ...this.videoForm, id: Date.now() });
+                    }
+                    this.saveSettingsToStorage();
+                    this.showVideoModal = false;
+                    Swal.fire({ icon: 'success', title: 'Video Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                },
+                deleteVideo(id) {
+                    Swal.fire({
+                        title: 'Hapus Video ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        confirmButtonText: 'Ya, hapus'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.videos = this.videos.filter(v => v.id !== id);
+                            this.saveSettingsToStorage();
+                            Swal.fire({ icon: 'success', title: 'Video Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                        }
+                    });
+                },
+
+                // CRUD FAQ
+                openAddFaqModal() {
+                    this.faqForm = { id: null, q: '', a: '' };
+                    this.showFaqModal = true;
+                },
+                openEditFaqModal(item) {
+                    this.faqForm = { ...item };
+                    this.showFaqModal = true;
+                },
+                saveFaq() {
+                    if (this.faqForm.id) {
+                        const idx = this.faqs.findIndex(f => f.id === this.faqForm.id);
+                        if (idx !== -1) this.faqs[idx] = { ...this.faqForm };
+                    } else {
+                        this.faqs.push({ ...this.faqForm, id: Date.now() });
+                    }
+                    this.saveSettingsToStorage();
+                    this.showFaqModal = false;
+                    Swal.fire({ icon: 'success', title: 'FAQ Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                },
+                deleteFaq(id) {
+                    Swal.fire({
+                        title: 'Hapus FAQ ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        confirmButtonText: 'Ya, hapus'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.faqs = this.faqs.filter(f => f.id !== id);
+                            this.saveSettingsToStorage();
+                            Swal.fire({ icon: 'success', title: 'FAQ Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                        }
+                    });
+                },
+
+                // CRUD RESEARCHERS
+                openAddResearcherModal() {
+                    this.researcherForm = { id: null, name: '', role: '', photo: 'images/Picture1.png', isLeader: false };
+                    this.showResearcherModal = true;
+                },
+                openEditResearcherModal(person) {
+                    this.researcherForm = { ...person };
+                    this.showResearcherModal = true;
+                },
+                saveResearcher() {
+                    if (this.researcherForm.id) {
+                        const idx = this.researchers.findIndex(r => r.id === this.researcherForm.id);
+                        if (idx !== -1) this.researchers[idx] = { ...this.researcherForm };
+                    } else {
+                        this.researchers.push({ ...this.researcherForm, id: Date.now() });
+                    }
+                    this.saveSettingsToStorage();
+                    this.showResearcherModal = false;
+                    Swal.fire({ icon: 'success', title: 'Data Peneliti Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                },
+                deleteResearcher(id) {
+                    Swal.fire({
+                        title: 'Hapus Peneliti ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7e22ce',
+                        confirmButtonText: 'Ya, hapus'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            this.researchers = this.researchers.filter(r => r.id !== id);
+                            this.saveSettingsToStorage();
+                            Swal.fire({ icon: 'success', title: 'Data Peneliti Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                        }
+                    });
+                },
+
+                // APP SETTINGS
+                saveAppSettings() {
+                    this.saveSettingsToStorage();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Pengaturan Tersimpan!',
+                        text: 'Icon logo & nama aplikasi berhasil diperbarui.',
+                        confirmButtonColor: '#7e22ce',
+                        timer: 2000,
+                        customClass: { popup: 'rounded-3xl' }
                     });
                 },
 
@@ -1327,10 +2004,7 @@
                             text: 'Tidak ada data untuk diekspor.',
                             confirmButtonColor: '#7e22ce',
                             timer: 2000,
-                            timerProgressBar: true,
-                            customClass: {
-                                popup: 'rounded-3xl'
-                            }
+                            customClass: { popup: 'rounded-3xl' }
                         });
                         return;
                     }
@@ -1349,187 +2023,6 @@
 
                 printAllReport() {
                     window.print();
-                },
-
-                // CRUD logic for Settings and Media
-                handleLogoUpload(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    
-                    // Limit file size to 1.5MB for localStorage compatibility
-                    if (file.size > 1500000) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Ukuran File Terlalu Besar',
-                            text: 'Harap gunakan logo dengan ukuran kurang dari 1.5MB.',
-                            confirmButtonColor: '#7e22ce',
-                            customClass: { popup: 'rounded-3xl' }
-                        });
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        this.appLogo = event.target.result;
-                        this.saveSettings();
-                    };
-                    reader.readAsDataURL(file);
-                },
-
-                saveSettings() {
-                    localStorage.setItem('sabawa_app_name', this.appName);
-                    localStorage.setItem('sabawa_app_subtitle', this.appSubtitle);
-                    localStorage.setItem('sabawa_app_logo', this.appLogo);
-                    localStorage.setItem('sabawa_about_desc', this.aboutDesc);
-                    localStorage.setItem('sabawa_team_members', JSON.stringify(this.teamMembers));
-                    localStorage.setItem('sabawa_materi', JSON.stringify(this.materi));
-                    localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
-                    localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
-
-                    // Sync Favicon
-                    const fav = document.querySelector('link[rel="icon"]');
-                    if (fav) fav.href = this.appLogo;
-                },
-
-                resetSettings() {
-                    Swal.fire({
-                        title: 'Reset ke Default?',
-                        text: 'Semua materi, video, FAQ, logo, dan pengaturan akan dikembalikan ke bawaan.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#7e22ce',
-                        cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Ya, reset!',
-                        cancelButtonText: 'Batal',
-                        customClass: { popup: 'rounded-3xl' }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            localStorage.removeItem('sabawa_app_name');
-                            localStorage.removeItem('sabawa_app_subtitle');
-                            localStorage.removeItem('sabawa_app_logo');
-                            localStorage.removeItem('sabawa_about_desc');
-                            localStorage.removeItem('sabawa_team_members');
-                            localStorage.removeItem('sabawa_materi');
-                            localStorage.removeItem('sabawa_videos');
-                            localStorage.removeItem('sabawa_faqs');
-                            window.location.reload();
-                        }
-                    });
-                },
-
-                // CRUD Materi
-                saveMateri() {
-                    if (this.editMateriIndex !== null) {
-                        this.materi[this.editMateriIndex] = { ...this.materiForm };
-                        this.editMateriIndex = null;
-                    } else {
-                        if (!this.materiForm.id) {
-                            this.materiForm.id = 'materi_' + Date.now();
-                        }
-                        this.materi.push({ ...this.materiForm });
-                    }
-                    this.saveSettings();
-                    this.materiForm = { id: '', tabTitle: '', title: '', description: '' };
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Materi berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                },
-                editMateri(idx) {
-                    this.editMateriIndex = idx;
-                    this.materiForm = { ...this.materi[idx] };
-                },
-                deleteMateri(idx) {
-                    Swal.fire({
-                        title: 'Hapus Materi?',
-                        text: 'Materi ini akan dihapus secara permanen.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#7e22ce',
-                        cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal',
-                        customClass: { popup: 'rounded-3xl' }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.materi.splice(idx, 1);
-                            this.saveSettings();
-                            if (this.activeMateriTab === this.materiForm.id) {
-                                this.activeMateriTab = this.materi.length > 0 ? this.materi[0].id : '';
-                            }
-                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Materi berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                        }
-                    });
-                },
-
-                // CRUD Video
-                saveVideo() {
-                    if (this.editVideoIndex !== null) {
-                        this.videos[this.editVideoIndex] = { ...this.videoForm };
-                        this.editVideoIndex = null;
-                    } else {
-                        this.videoForm.id = Date.now();
-                        this.videos.push({ ...this.videoForm });
-                    }
-                    this.saveSettings();
-                    this.videoForm = { id: null, title: '', description: '', url: '', category: '' };
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Video berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                },
-                editVideo(idx) {
-                    this.editVideoIndex = idx;
-                    this.videoForm = { ...this.videos[idx] };
-                },
-                deleteVideo(idx) {
-                    Swal.fire({
-                        title: 'Hapus Video?',
-                        text: 'Video tutorial ini akan dihapus secara permanen.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#7e22ce',
-                        cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal',
-                        customClass: { popup: 'rounded-3xl' }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.videos.splice(idx, 1);
-                            this.saveSettings();
-                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Video berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                        }
-                    });
-                },
-
-                // CRUD FAQ
-                saveFaq() {
-                    if (this.editFaqIndex !== null) {
-                        this.faqs[this.editFaqIndex] = { ...this.faqForm, open: false };
-                        this.editFaqIndex = null;
-                    } else {
-                        this.faqs.push({ ...this.faqForm, open: false });
-                    }
-                    this.saveSettings();
-                    this.faqForm = { q: '', a: '' };
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'FAQ berhasil disimpan!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                },
-                editFaq(idx) {
-                    this.editFaqIndex = idx;
-                    this.faqForm = { q: this.faqs[idx].q, a: this.faqs[idx].a };
-                },
-                deleteFaq(idx) {
-                    Swal.fire({
-                        title: 'Hapus FAQ?',
-                        text: 'FAQ ini akan dihapus secara permanen.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#7e22ce',
-                        cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal',
-                        customClass: { popup: 'rounded-3xl' }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            this.faqs.splice(idx, 1);
-                            this.saveSettings();
-                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'FAQ berhasil dihapus!', timer: 1500, timerProgressBar: true, confirmButtonColor: '#7e22ce', customClass: { popup: 'rounded-3xl' } });
-                        }
-                    });
                 }
             };
         }
