@@ -886,9 +886,6 @@
                                             <button @click="activeTab = 'form'" class="px-2.5 py-1 bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm">
                                                 + Tambah Data
                                             </button>
-                                            <button @click="seedSampleData()" class="px-2.5 py-1 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm" title="Muat Contoh Data Tes">
-                                                Reset Demo Data
-                                            </button>
                                         </div>
                                     </div>
 
