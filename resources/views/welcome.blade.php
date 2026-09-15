@@ -3022,13 +3022,21 @@
                         return;
                     }
 
+                exportRekapToPDF() {
+                    const items = this.filteredRecords;
+                    if (!items || items.length === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan',
+                            text: 'Tidak ada data asesmen untuk diekspor ke PDF.',
+                            confirmButtonColor: '#7e22ce'
+                        });
+                        return;
+                    }
+
                     this.isExportingPdf = true;
                     const container = document.createElement('div');
-                    container.style.position = 'fixed';
-                    container.style.top = '0';
-                    container.style.left = '0';
                     container.style.width = '1080px';
-                    container.style.zIndex = '999999';
                     container.style.backgroundColor = '#ffffff';
                     container.style.boxSizing = 'border-box';
                     container.innerHTML = this.generateRekapHTML(items);
@@ -3041,13 +3049,10 @@
                         html2canvas: {
                             scale: 2,
                             useCORS: true,
-                            logging: false,
-                            scrollX: 0,
-                            scrollY: 0,
-                            windowWidth: 1080
+                            logging: false
                         },
                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                        pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
                     };
 
                     html2pdf().set(opt).from(container).save().then(() => {
@@ -3072,11 +3077,7 @@
                     if (!this.selectedRecord) return;
                     this.isExportingPdf = true;
                     const container = document.createElement('div');
-                    container.style.position = 'fixed';
-                    container.style.top = '0';
-                    container.style.left = '0';
                     container.style.width = '750px';
-                    container.style.zIndex = '999999';
                     container.style.backgroundColor = '#ffffff';
                     container.style.boxSizing = 'border-box';
                     container.innerHTML = this.generateDetailCertificateHTML(this.selectedRecord);
@@ -3084,19 +3085,15 @@
 
                     const cleanName = (this.selectedRecord.nama || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
                     const opt = {
-                        margin: [8, 8, 8, 8],
+                        margin: [6, 6, 6, 6],
                         filename: 'SA_BAWA_Hasil_Tes_' + cleanName + '_' + (this.selectedRecord.nim || '') + '.pdf',
                         image: { type: 'jpeg', quality: 0.98 },
                         html2canvas: {
                             scale: 2,
                             useCORS: true,
-                            logging: false,
-                            scrollX: 0,
-                            scrollY: 0,
-                            windowWidth: 750
+                            logging: false
                         },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
 
                     html2pdf().set(opt).from(container).save().then(() => {
