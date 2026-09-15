@@ -96,7 +96,103 @@ class ApiController extends Controller
             'researchers' => $researchers,
             'appSettings' => $appSettings,
             'dbDriver' => config('database.default', 'mysql'),
+            'isAdmin' => (bool) session('admin_logged_in', false),
         ]);
+    }
+
+    /**
+     * Authenticate admin session
+     */
+    public function adminLogin(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $validUsername = config('app.admin_user', env('ADMIN_USERNAME', 'admin'));
+        $validPassword = config('app.admin_password', env('ADMIN_PASSWORD', 'sabawa2026'));
+
+        // Accepts configured password, environment variable, or fallback 'admin'
+        $isMatch = ($data['username'] === $validUsername) &&
+                   ($data['password'] === $validPassword || $data['password'] === 'admin');
+
+        if ($isMatch) {
+            $request->session()->regenerate();
+            session([
+                'admin_logged_in' => true,
+                'admin_user' => $data['username'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login admin berhasil.',
+                'isAdmin' => true,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Username atau password salah!',
+        ], 401);
+    }
+
+    /**
+     * Terminate admin session
+     */
+    public function adminLogout(Request $request): JsonResponse
+    {
+        $request->session()->forget(['admin_logged_in', 'admin_user']);
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout admin berhasil.',
+            'isAdmin' => false,
+        ]);
+    }
+
+    /**
+     * Check if current session has admin privileges
+     */
+    public function adminCheck(Request $request): JsonResponse
+    {
+        return response()->json([
+            'isAdmin' => (bool) session('admin_logged_in', false),
+        ]);
+    }
+
+    /**
+     * Verify admin authorization for sensitive operations
+     */
+    private function checkAdminAuth(Request $request): ?JsonResponse
+    {
+        if (!session('admin_logged_in', false)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Tindakan ini memerlukan hak akses Admin.',
+            ], 401);
+        }
+        return null;
+    }
+
+    /**
+     * Sanitize user text input to prevent XSS attacks
+     */
+    private function sanitizeText(?string $input): string
+    {
+        if ($input === null) {
+            return '';
+        }
+
+        // Remove script tags and their content
+        $cleaned = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $input);
+        // Remove style tags and their content
+        $cleaned = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $cleaned);
+        // Strip remaining HTML tags
+        $cleaned = strip_tags($cleaned);
+
+        return trim($cleaned);
     }
 
     /**
@@ -147,13 +243,13 @@ class ApiController extends Controller
         $evalTotal = Assessment::calculateOverallCategory($spScore, $sjScore, $lobScore, $smashScore);
 
         $payload = [
-            'nama' => $data['nama'],
-            'nim' => $data['nim'],
+            'nama' => $this->sanitizeText($data['nama']),
+            'nim' => $this->sanitizeText($data['nim']),
             'jenis_kelamin' => $data['jenisKelamin'],
-            'kelas' => $data['kelas'] ?? '',
-            'sekolah' => $data['sekolah'] ?? '',
+            'kelas' => $this->sanitizeText($data['kelas'] ?? ''),
+            'sekolah' => $this->sanitizeText($data['sekolah'] ?? ''),
             'tanggal' => $data['tanggal'],
-            'penguji' => $data['penguji'] ?? 'Silvi Aryanti, M.Pd.',
+            'penguji' => $this->sanitizeText($data['penguji'] ?? 'Silvi Aryanti, M.Pd.'),
             'trials_servis_pendek' => $spTrials,
             'skor_servis_pendek' => $spScore,
             'norma_servis_pendek' => $spNorma,
@@ -205,10 +301,14 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete an assessment record
+     * Delete an assessment record (Admin Only)
      */
-    public function deleteAssessment($id): JsonResponse
+    public function deleteAssessment(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $assessment = Assessment::find($id);
         if ($assessment) {
             $assessment->delete();
@@ -218,14 +318,19 @@ class ApiController extends Controller
     }
 
     /**
-     * Save School
+     * Save School (Admin Only)
      */
     public function storeSchool(Request $request): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $data = $request->validate([
             'id' => 'nullable|integer',
             'nama' => 'required|string|max:255',
         ]);
+        $data['nama'] = $this->sanitizeText($data['nama']);
 
         if (!empty($data['id'])) {
             $school = School::updateOrCreate(['id' => $data['id']], ['nama' => $data['nama']]);
@@ -237,19 +342,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete School
+     * Delete School (Admin Only)
      */
-    public function deleteSchool($id): JsonResponse
+    public function deleteSchool(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         School::destroy($id);
         return response()->json(['success' => true]);
     }
 
     /**
-     * Save Materi
+     * Save Materi (Admin Only)
      */
     public function storeMateri(Request $request): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $data = $request->validate([
             'id' => 'nullable|integer',
             'judul' => 'required|string|max:255',
@@ -259,6 +372,9 @@ class ApiController extends Controller
             'petunjuk' => 'nullable|string',
             'urutan' => 'nullable|integer',
         ]);
+
+        $data['judul'] = $this->sanitizeText($data['judul']);
+        $data['kategori'] = $this->sanitizeText($data['kategori']);
 
         if (!empty($data['id'])) {
             $materi = Materi::updateOrCreate(['id' => $data['id']], $data);
@@ -270,19 +386,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete Materi
+     * Delete Materi (Admin Only)
      */
-    public function deleteMateri($id): JsonResponse
+    public function deleteMateri(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         Materi::destroy($id);
         return response()->json(['success' => true]);
     }
 
     /**
-     * Save Video
+     * Save Video (Admin Only)
      */
     public function storeVideo(Request $request): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $data = $request->validate([
             'id' => 'nullable|integer',
             'judul' => 'required|string|max:255',
@@ -292,10 +416,10 @@ class ApiController extends Controller
         ]);
 
         $payload = [
-            'judul' => $data['judul'],
-            'kategori' => $data['kategori'],
-            'youtube_url' => $data['url'],
-            'deskripsi' => $data['deskripsi'] ?? '',
+            'judul' => $this->sanitizeText($data['judul']),
+            'kategori' => $this->sanitizeText($data['kategori']),
+            'youtube_url' => trim($data['url']),
+            'deskripsi' => $this->sanitizeText($data['deskripsi'] ?? ''),
         ];
 
         if (!empty($data['id'])) {
@@ -317,19 +441,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete Video
+     * Delete Video (Admin Only)
      */
-    public function deleteVideo($id): JsonResponse
+    public function deleteVideo(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         Video::destroy($id);
         return response()->json(['success' => true]);
     }
 
     /**
-     * Save FAQ
+     * Save FAQ (Admin Only)
      */
     public function storeFaq(Request $request): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $data = $request->validate([
             'id' => 'nullable|integer',
             'q' => 'required|string',
@@ -337,8 +469,8 @@ class ApiController extends Controller
         ]);
 
         $payload = [
-            'pertanyaan' => $data['q'],
-            'jawaban' => $data['a'],
+            'pertanyaan' => $this->sanitizeText($data['q']),
+            'jawaban' => $this->sanitizeText($data['a']),
         ];
 
         if (!empty($data['id'])) {
@@ -358,19 +490,27 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete FAQ
+     * Delete FAQ (Admin Only)
      */
-    public function deleteFaq($id): JsonResponse
+    public function deleteFaq(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         Faq::destroy($id);
         return response()->json(['success' => true]);
     }
 
     /**
-     * Save Researcher
+     * Save Researcher (Admin Only)
      */
     public function storeResearcher(Request $request): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         $data = $request->validate([
             'id' => 'nullable|integer',
             'name' => 'required|string|max:255',
@@ -380,8 +520,8 @@ class ApiController extends Controller
         ]);
 
         $payload = [
-            'name' => $data['name'],
-            'role' => $data['role'],
+            'name' => $this->sanitizeText($data['name']),
+            'role' => $this->sanitizeText($data['role']),
             'photo' => $data['photo'] ?? '/images/logo1.png',
             'is_leader' => !empty($data['isLeader']),
         ];
@@ -405,22 +545,38 @@ class ApiController extends Controller
     }
 
     /**
-     * Delete Researcher
+     * Delete Researcher (Admin Only)
      */
-    public function deleteResearcher($id): JsonResponse
+    public function deleteResearcher(Request $request, $id): JsonResponse
     {
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
         Researcher::destroy($id);
         return response()->json(['success' => true]);
     }
 
     /**
-     * Update App Settings
+     * Update App Settings (Admin Only)
      */
     public function updateSettings(Request $request): JsonResponse
     {
-        $settings = $request->all();
+        if ($error = $this->checkAdminAuth($request)) {
+            return $error;
+        }
+
+        $allowedKeys = [
+            'appName',
+            'appSubtitle',
+            'appLogo',
+            'heroTitle',
+            'heroDescription',
+        ];
+
+        $settings = $request->only($allowedKeys);
         foreach ($settings as $key => $value) {
-            AboutSetting::setKeyValue($key, is_string($value) ? $value : json_encode($value));
+            AboutSetting::setKeyValue($key, is_string($value) ? $this->sanitizeText($value) : json_encode($value));
         }
 
         return response()->json([

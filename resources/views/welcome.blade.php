@@ -66,8 +66,19 @@
             ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 9999px; }
             @media print {
                 .no-print { display: none !important; }
-                .print-only { display: block !important; }
-                body { background: white !important; color: black !important; }
+                body * { visibility: hidden !important; }
+                #printable-area, #printable-area * { visibility: visible !important; }
+                #printable-area {
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 100% !important;
+                    margin: 0 !important;
+                    padding: 15px !important;
+                    display: block !important;
+                    background: white !important;
+                    color: black !important;
+                }
             }
             input[type=number]::-webkit-inner-spin-button, 
             input[type=number]::-webkit-outer-spin-button { 
@@ -82,6 +93,9 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- html2pdf.js for Clean Formatted Table PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -305,128 +319,132 @@
 
                             <!-- QUICK ACTION GRID (MOBILE BANKING 8-ICON MENU) -->
                             <div>
-                                <div class="flex justify-between items-center mb-2.5">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center">
                                         <i class="fa-solid fa-grid-2 text-purple-600 mr-1.5"></i> Menu Utama
                                     </h3>
-                                    <span class="text-[10px] text-purple-700 font-semibold cursor-pointer" @click="activeTab = 'materi'">Panduan &rarr;</span>
+                                    <span class="text-xs text-purple-700 font-bold hover:underline cursor-pointer" @click="activeTab = 'materi'">Panduan &rarr;</span>
                                 </div>
 
                                 <div class="grid grid-cols-4 gap-2.5">
                                     <!-- 1. Form Input -->
-                                    <button @click="activeTab = 'form'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-pen-to-square text-base"></i>
+                                    <button @click="activeTab = 'form'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-pen-to-square text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Isi Data</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Isi Data</span>
                                     </button>
 
                                     <!-- 2. Tampil Data -->
-                                    <button @click="activeTab = 'data'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-table-list text-base"></i>
+                                    <button @click="activeTab = 'data'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-table-list text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Tampil Data</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Tampil Data</span>
                                     </button>
 
                                     <!-- 3. Materi -->
-                                    <button @click="activeTab = 'materi'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-book-open text-base"></i>
+                                    <button @click="activeTab = 'materi'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-book-open text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Materi Tes</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Materi Tes</span>
                                     </button>
 
                                     <!-- 4. Video -->
-                                    <button @click="activeTab = 'video'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-circle-play text-base"></i>
+                                    <button @click="activeTab = 'video'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-circle-play text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">Video</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Video</span>
                                     </button>
 
                                     <!-- 5. FAQ -->
-                                    <button @click="activeTab = 'faq'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-circle-question text-base"></i>
+                                    <button @click="activeTab = 'faq'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-circle-question text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">FAQ</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">FAQ</span>
                                     </button>
 
                                     <!-- 6. About / Tim Peneliti -->
-                                    <button @click="activeTab = 'about'" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-users text-base"></i>
+                                    <button @click="activeTab = 'about'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-users text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-semibold text-slate-700 mt-1.5 text-center">About</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">About</span>
                                     </button>
 
-                                    <!-- 7. Dashboard Admin (Pengganti Norma Tes) -->
-                                    <button @click="isAdmin ? activeTab = 'admin' : showLoginModal = true" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-purple-200 shadow-sm hover:border-purple-400 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
-                                            <i class="fa-solid fa-user-gear text-base"></i>
+                                    <!-- 7. Dashboard Admin -->
+                                    <button @click="isAdmin ? activeTab = 'admin' : showLoginModal = true" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-purple-200 shadow-xs hover:border-purple-400 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-purple-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                                            <i class="fa-solid fa-user-gear text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-bold text-purple-900 mt-1.5 text-center" x-text="isAdmin ? 'Dashboard' : 'Admin'"></span>
+                                        <span class="text-[11px] font-bold text-purple-900 mt-1.5 text-center leading-tight" x-text="isAdmin ? 'Dashboard' : 'Admin'"></span>
                                     </button>
 
-                                    <!-- 8. Logout (Pengganti Isi Contoh) -->
-                                    <button @click="isAdmin ? logoutAdmin() : showLoginModal = true" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white border border-rose-200 shadow-sm hover:border-rose-300 transition-all group">
-                                        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-right-from-bracket text-base"></i>
+                                    <!-- 8. Logout / Login -->
+                                    <button @click="isAdmin ? logoutAdmin() : showLoginModal = true" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-rose-200 shadow-xs hover:border-rose-300 hover:shadow-md transition-all group min-h-[82px]">
+                                        <div class="w-11 h-11 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+                                            <i class="fa-solid fa-right-from-bracket text-lg"></i>
                                         </div>
-                                        <span class="text-[10px] font-bold text-rose-700 mt-1.5 text-center" x-text="isAdmin ? 'Logout' : 'Login'"></span>
+                                        <span class="text-[11px] font-bold text-rose-700 mt-1.5 text-center leading-tight" x-text="isAdmin ? 'Logout' : 'Login'"></span>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- BANNER INFORMASI SINGKAT -->
-                            <div class="bg-purple-50 rounded-2xl p-3.5 border border-purple-100 flex items-start space-x-3">
-                                <div class="p-2 rounded-xl bg-purple-600 text-white shrink-0 text-xs">
+                            <div class="bg-purple-50/90 rounded-2xl p-4 border border-purple-100 flex items-start space-x-3.5 shadow-2xs">
+                                <div class="p-2.5 rounded-xl bg-purple-600 text-white shrink-0 text-sm shadow-sm">
                                     <i class="fa-solid fa-circle-info"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-xs text-purple-950">Instrumen Penilaian Bulutangkis</h4>
-                                    <p class="text-[10px] text-slate-600 mt-0.5 leading-relaxed">
-                                        Oleh <strong x-text="researchers[0] ? researchers[0].name : 'Silvi Aryanti, M.Pd.'"></strong> & Tim. Mengukur 4 teknik dasar secara konversi norma otomatis.
+                                    <h4 class="font-extrabold text-xs text-purple-950">Instrumen Penilaian Bulutangkis</h4>
+                                    <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                                        Oleh <strong class="text-purple-900" x-text="researchers[0] ? researchers[0].name : 'Silvi Aryanti, M.Pd.'"></strong> & Tim. Mengukur 4 teknik dasar dengan konversi norma otomatis.
                                     </p>
                                 </div>
                             </div>
 
-                            <!-- RECENT ASSESSMENTS LIST (MOBILE BANKING TRANSACTION HISTORY STYLE) -->
-                            <div class="space-y-2.5">
+                            <!-- RECENT ASSESSMENTS LIST (5 TEST TERAKHIR) -->
+                            <div class="space-y-3">
                                 <div class="flex justify-between items-center">
-                                    <h3 class="font-bold text-xs text-slate-800 flex items-center">
-                                        <i class="fa-solid fa-clock-rotate-left text-purple-600 mr-1.5"></i> Penilaian Terbaru
+                                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center">
+                                        <i class="fa-solid fa-clock-rotate-left text-purple-600 mr-2"></i> 5 Penilaian Terbaru
                                     </h3>
-                                    <span class="text-[10px] text-purple-700 font-semibold cursor-pointer" @click="activeTab = 'data'">Semua (&plus;<span x-text="records.length"></span>)</span>
+                                    <span class="text-xs text-purple-700 font-bold hover:underline cursor-pointer" @click="activeTab = 'data'">Semua (&plus;<span x-text="records.length"></span>)</span>
                                 </div>
 
-                                <div class="space-y-2">
+                                <div class="space-y-2.5">
                                     <template x-if="records.length === 0">
-                                        <div class="text-center py-6 bg-white rounded-2xl border border-slate-200">
-                                            <i class="fa-solid fa-folder-open text-xl text-slate-400 mb-1"></i>
-                                            <p class="text-[11px] text-slate-500">Belum ada data penilaian.</p>
+                                        <div class="text-center py-8 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                                            <i class="fa-solid fa-folder-open text-2xl text-slate-300 mb-1.5"></i>
+                                            <p class="text-xs text-slate-500 font-medium">Belum ada data penilaian.</p>
                                         </div>
                                     </template>
 
-                                    <template x-for="(item, index) in records.slice(0, 3)" :key="index">
-                                        <div class="bg-white rounded-2xl p-3 flex justify-between items-center border border-slate-200/80 shadow-sm hover:border-purple-300 transition-all cursor-pointer" @click="openDetailModal(item)">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow"
-                                                     :class="item.jenisKelamin === 'L' ? 'bg-gradient-to-tr from-blue-600 to-cyan-600' : 'bg-gradient-to-tr from-pink-600 to-rose-600'">
+                                    <template x-for="(item, index) in records.slice(0, 5)" :key="item.id || index">
+                                        <div class="bg-white rounded-2xl p-3.5 flex justify-between items-center border border-slate-200/90 shadow-2xs hover:border-purple-300 hover:shadow-md transition-all cursor-pointer" @click="openDetailModal(item)">
+                                            <div class="flex items-center space-x-3.5 min-w-0 pr-2">
+                                                <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-sm shrink-0"
+                                                     :class="item.jenisKelamin === 'L' ? 'bg-gradient-to-tr from-blue-600 to-indigo-600' : 'bg-gradient-to-tr from-pink-600 to-rose-600'">
                                                     <span x-text="item.nama.charAt(0).toUpperCase()"></span>
                                                 </div>
-                                                <div>
-                                                    <h4 class="font-bold text-xs text-slate-900" x-text="item.nama"></h4>
-                                                    <p class="text-[10px] text-slate-500">NIM: <span x-text="item.nim"></span> • <span x-text="item.kelas"></span></p>
+                                                <div class="min-w-0">
+                                                    <h4 class="font-extrabold text-sm text-slate-900 truncate" x-text="item.nama" :title="item.nama"></h4>
+                                                    <p class="text-xs text-slate-500 truncate mt-0.5">
+                                                        <span>NIM: </span><strong class="text-slate-700" x-text="item.nim"></strong>
+                                                        <span class="text-slate-300 mx-1">•</span>
+                                                        <span x-text="item.kelas || 'Umum'"></span>
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div class="text-right">
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold"
+                                            <div class="text-right shrink-0">
+                                                <span class="px-2.5 py-1 rounded-full text-[10.5px] font-extrabold inline-block"
                                                       :class="getCategoryBadgeClass(item.evaluasiTotal)">
                                                     <span x-text="item.evaluasiTotal"></span>
                                                 </span>
-                                                <p class="text-[9px] text-slate-400 mt-0.5" x-text="item.tanggal"></p>
+                                                <p class="text-[10.5px] text-slate-400 font-medium mt-1" x-text="item.tanggal"></p>
                                             </div>
                                         </div>
                                     </template>
@@ -732,28 +750,39 @@
                                 </div>
 
                                 <!-- SUBMIT BUTTON -->
-                                <div class="bank-card-bright rounded-2xl p-4 text-white flex justify-between items-center">
+                                <div class="bank-card-bright rounded-2xl p-4 text-white flex justify-between items-center shadow-md">
                                     <div>
-                                        <p class="text-[9px] text-purple-200 font-semibold uppercase">Evaluasi Akhir</p>
-                                        <h3 class="text-base font-extrabold" x-text="calculateOverallCategory(form.skorServisPendek, form.skorServisPanjang, form.skorLob, form.skorSmash)"></h3>
+                                        <p class="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Evaluasi Akhir</p>
+                                        <h3 class="text-base sm:text-lg font-black" x-text="calculateOverallCategory(form.skorServisPendek, form.skorServisPanjang, form.skorLob, form.skorSmash)"></h3>
                                     </div>
-                                    <button type="submit" class="bg-white text-purple-900 font-extrabold px-4 py-2 rounded-xl text-xs hover:bg-purple-50 shadow-md transition-all">
-                                        <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Data
+                                    <button type="submit" class="bg-white text-purple-950 font-black px-5 py-2.5 rounded-xl text-sm hover:bg-purple-50 shadow-md hover:shadow-lg transition-all flex items-center space-x-2 active:scale-95">
+                                        <i class="fa-solid fa-floppy-disk text-purple-700"></i>
+                                        <span>Simpan Data</span>
                                     </button>
                                 </div>
                             </form>
                         </div>
 
                         <!-- 3. TAMPIL DATA TAB -->
-                        <div x-show="activeTab === 'data'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3">
-                            <div class="flex justify-between items-center">
+                        <div x-show="activeTab === 'data'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-3.5">
+                            <div class="flex justify-between items-center flex-wrap gap-2">
                                 <div>
-                                    <h2 class="text-base font-extrabold text-purple-950">Rekap Data Asesmen</h2>
-                                    <p class="text-[11px] text-slate-500">Daftar hasil tes keterampilan siswa</p>
+                                    <h2 class="text-base sm:text-lg font-black text-purple-950">Rekap Data Asesmen</h2>
+                                    <p class="text-xs text-slate-500 font-medium">Daftar hasil tes keterampilan siswa</p>
                                 </div>
-                                <div class="flex space-x-1">
-                                    <button @click="exportToCSV()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm">CSV</button>
-                                    <button @click="printAllReport()" class="px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-[10px] font-bold shadow-sm">Cetak</button>
+                                <div class="flex items-center space-x-1.5 flex-wrap gap-1.5">
+                                    <button @click="exportToCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs hover:shadow-sm transition-all flex items-center space-x-1.5" title="Ekspor ke CSV Spreadsheet">
+                                        <i class="fa-solid fa-file-csv text-sm"></i>
+                                        <span>CSV</span>
+                                    </button>
+                                    <button @click="exportRekapToPDF()" :disabled="isExportingPdf" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-xs hover:shadow-sm transition-all flex items-center space-x-1.5 disabled:opacity-50" title="Ekspor Tabel Resmi ke PDF">
+                                        <i class="fa-solid fa-file-pdf text-sm" :class="isExportingPdf ? 'animate-pulse' : ''"></i>
+                                        <span x-text="isExportingPdf ? 'Memproses...' : 'Export PDF'"></span>
+                                    </button>
+                                    <button @click="printAllReport()" class="px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-black shadow-xs hover:shadow-sm transition-all flex items-center space-x-1.5" title="Cetak Tabel Laporan">
+                                        <i class="fa-solid fa-print text-sm"></i>
+                                        <span>Cetak</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -799,30 +828,37 @@
                                 </template>
 
                                 <template x-for="(item, index) in filteredRecords" :key="index">
-                                    <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm space-y-2">
+                                    <div class="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs space-y-2.5 hover:border-purple-300 transition-all">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <h4 class="font-extrabold text-xs text-slate-900" x-text="item.nama"></h4>
-                                                <p class="text-[10px] text-slate-500">NIM: <span x-text="item.nim"></span> • <span x-text="item.kelas"></span> <template x-if="item.sekolah"><span>• <span class="text-purple-700 font-semibold" x-text="item.sekolah"></span></span></template></p>
+                                                <h4 class="font-black text-sm text-slate-900 leading-tight" x-text="item.nama"></h4>
+                                                <p class="text-xs text-slate-500 mt-0.5">
+                                                    <span>NIM: </span><strong class="text-slate-700 font-bold" x-text="item.nim"></strong>
+                                                    <span class="text-slate-300 mx-1">•</span>
+                                                    <span x-text="item.kelas || 'Umum'"></span>
+                                                    <template x-if="item.sekolah">
+                                                        <span> <span class="text-slate-300 mx-1">•</span> <span class="text-purple-700 font-bold" x-text="item.sekolah"></span></span>
+                                                    </template>
+                                                </p>
                                             </div>
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(item.evaluasiTotal)" x-text="item.evaluasiTotal"></span>
+                                            <span class="px-2.5 py-1 rounded-full text-[10.5px] font-black shrink-0" :class="getCategoryBadgeClass(item.evaluasiTotal)" x-text="item.evaluasiTotal"></span>
                                         </div>
 
-                                        <div class="grid grid-cols-4 gap-1 bg-slate-50 p-2 rounded-xl text-[9px] text-center font-semibold">
-                                            <div>SP: <span class="font-extrabold text-purple-700" x-text="item.skorServisPendek ?? 0"></span></div>
-                                            <div>SJ: <span class="font-extrabold text-indigo-700" x-text="item.skorServisPanjang ?? 0"></span></div>
-                                            <div>Lob: <span class="font-extrabold text-blue-700" x-text="item.skorLob ?? 0"></span></div>
-                                            <div>Smash: <span class="font-extrabold text-rose-700" x-text="item.skorSmash ?? 0"></span></div>
+                                        <div class="grid grid-cols-4 gap-1.5 bg-slate-50/90 p-2.5 rounded-xl text-xs text-center font-semibold border border-slate-100">
+                                            <div>SP: <span class="font-black text-purple-700" x-text="item.skorServisPendek ?? 0"></span></div>
+                                            <div>SJ: <span class="font-black text-indigo-700" x-text="item.skorServisPanjang ?? 0"></span></div>
+                                            <div>Lob: <span class="font-black text-blue-700" x-text="item.skorLob ?? 0"></span></div>
+                                            <div>Smash: <span class="font-black text-rose-700" x-text="item.skorSmash ?? 0"></span></div>
                                         </div>
 
-                                        <div class="flex justify-between items-center text-[10px] pt-1">
-                                            <span class="text-slate-400" x-text="item.tanggal"></span>
-                                            <div class="flex space-x-1">
-                                                <button @click="openDetailModal(item)" class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded-lg hover:bg-purple-200">Rincian</button>
+                                        <div class="flex justify-between items-center text-xs pt-0.5">
+                                            <span class="text-slate-400 font-medium text-[11px]" x-text="item.tanggal"></span>
+                                            <div class="flex items-center space-x-1.5">
+                                                <button @click="openDetailModal(item)" class="px-3 py-1 bg-purple-100 text-purple-800 font-bold rounded-xl text-xs hover:bg-purple-200 transition-all">Rincian</button>
                                                 <template x-if="isAdmin">
-                                                    <div class="flex space-x-1">
-                                                        <button @click="editRecord(item)" class="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-lg hover:bg-blue-200">Edit</button>
-                                                        <button @click="deleteRecord(item.id)" class="px-2 py-0.5 bg-rose-100 text-rose-700 font-bold rounded-lg hover:bg-rose-200">Hapus</button>
+                                                    <div class="flex items-center space-x-1.5">
+                                                        <button @click="editRecord(item)" class="px-3 py-1 bg-blue-100 text-blue-700 font-bold rounded-xl text-xs hover:bg-blue-200 transition-all">Edit</button>
+                                                        <button @click="deleteRecord(item.id)" class="px-3 py-1 bg-rose-100 text-rose-700 font-bold rounded-xl text-xs hover:bg-rose-200 transition-all">Hapus</button>
                                                     </div>
                                                 </template>
                                             </div>
@@ -1298,35 +1334,35 @@
                     </div>
 
                     <!-- BOTTOM MOBILE BANK NAVIGATION BAR -->
-                    <nav class="fixed lg:absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-2 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
-                        <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-house text-base"></i>
-                            <span class="text-[9px]">Home</span>
+                    <nav class="fixed lg:absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 py-2.5 px-2 grid grid-cols-6 text-center no-print z-30 shadow-lg">
+                        <button @click="activeTab = 'home'" :class="activeTab === 'home' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-house text-lg" :class="activeTab === 'home' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">Home</span>
                         </button>
 
-                        <button @click="activeTab = 'form'" :class="activeTab === 'form' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-pen-to-square text-base"></i>
-                            <span class="text-[9px]">Form</span>
+                        <button @click="activeTab = 'form'" :class="activeTab === 'form' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-pen-to-square text-lg" :class="activeTab === 'form' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">Form</span>
                         </button>
 
-                        <button @click="activeTab = 'data'" :class="activeTab === 'data' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-table-list text-base"></i>
-                            <span class="text-[9px]">Data</span>
+                        <button @click="activeTab = 'data'" :class="activeTab === 'data' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-table-list text-lg" :class="activeTab === 'data' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">Data</span>
                         </button>
 
-                        <button @click="activeTab = 'materi'" :class="activeTab === 'materi' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-book-open text-base"></i>
-                            <span class="text-[9px]">Materi</span>
+                        <button @click="activeTab = 'materi'" :class="activeTab === 'materi' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-book-open text-lg" :class="activeTab === 'materi' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">Materi</span>
                         </button>
 
-                        <button @click="activeTab = 'video'" :class="activeTab === 'video' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-circle-play text-base"></i>
-                            <span class="text-[9px]">Video</span>
+                        <button @click="activeTab = 'video'" :class="activeTab === 'video' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-circle-play text-lg" :class="activeTab === 'video' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">Video</span>
                         </button>
 
-                        <button @click="activeTab = 'about'" :class="activeTab === 'about' ? 'text-purple-700 font-extrabold' : 'text-slate-400 hover:text-slate-600'" class="flex flex-col items-center space-y-0.5">
-                            <i class="fa-solid fa-users text-base"></i>
-                            <span class="text-[9px]">About</span>
+                        <button @click="activeTab = 'about'" :class="activeTab === 'about' ? 'text-purple-800 font-black' : 'text-slate-500 hover:text-purple-700 font-semibold'" class="flex flex-col items-center space-y-0.5 transition-all">
+                            <i class="fa-solid fa-users text-lg" :class="activeTab === 'about' ? 'scale-110' : ''"></i>
+                            <span class="text-[10.5px] tracking-tight">About</span>
                         </button>
                     </nav>
                 </div>
@@ -1494,10 +1530,14 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-end space-x-2 pt-2 no-print">
-                        <button @click="window.print()" class="px-4 py-2 bg-purple-700 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1">
+                    <div class="flex justify-end space-x-2 pt-2 no-print flex-wrap gap-2">
+                        <button @click="exportDetailToPDF()" :disabled="isExportingPdf" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow flex items-center space-x-1.5 transition-all disabled:opacity-50" title="Download Kartu Hasil Tes sebagai PDF">
+                            <i class="fa-solid fa-file-pdf" :class="isExportingPdf ? 'animate-pulse' : ''"></i>
+                            <span x-text="isExportingPdf ? 'Membuat PDF...' : 'Download PDF'"></span>
+                        </button>
+                        <button @click="printDetailCard()" class="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow flex items-center space-x-1.5 transition-all" title="Cetak Kartu Hasil Tes Resmi">
                             <i class="fa-solid fa-print"></i>
-                            <span>Cetak Hasil Tes</span>
+                            <span>Cetak Kartu</span>
                         </button>
                     </div>
                 </div>
@@ -1721,11 +1761,16 @@
                 activeVideoTitle: '',
                 editingIndex: null,
 
-                // Database & Multi-Device Sync States
+                // Database & Multi-Device Sync & Export States
                 dbConnected: true,
                 dbDriver: '{{ config('database.default', 'mysql') }}',
                 isSyncing: false,
                 isSaving: false,
+                isExportingPdf: false,
+
+                csrfToken() {
+                    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                },
 
                 // Accordion Expand States for 20-attempts grids
                 expandedTechniques: {
@@ -1868,6 +1913,11 @@
                             this.appSettings = { ...this.appSettings, ...data.appSettings };
                         }
                         if (data.dbDriver) this.dbDriver = data.dbDriver;
+                        if (typeof data.isAdmin !== 'undefined') {
+                            this.isAdmin = Boolean(data.isAdmin);
+                            if (this.isAdmin) localStorage.setItem('sabawa_admin', 'true');
+                            else localStorage.removeItem('sabawa_admin');
+                        }
 
                         this.dbConnected = true;
                         this.saveToLocalStorageFallback();
@@ -1920,28 +1970,65 @@
                     if (res) this.researchers = JSON.parse(res);
                 },
 
-                loginAdmin() {
-                    if (this.loginForm.username === 'admin' && (this.loginForm.password === 'admin' || this.loginForm.password === 'sabawa2026')) {
-                        this.isAdmin = true;
-                        localStorage.setItem('sabawa_admin', 'true');
-                        this.showLoginModal = false;
-                        this.loginError = '';
-                        this.activeTab = 'admin';
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Login Admin Berhasil',
-                            text: "Selamat datang kembali di Dashboard Admin " + this.appSettings.appName + "!",
-                            confirmButtonColor: '#7e22ce',
-                            timer: 2000,
-                            timerProgressBar: true,
-                            customClass: { popup: 'rounded-3xl' }
+                async loginAdmin() {
+                    this.loginError = '';
+                    try {
+                        const res = await fetch('/api/admin/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
+                            body: JSON.stringify({
+                                username: this.loginForm.username,
+                                password: this.loginForm.password
+                            })
                         });
-                    } else {
-                        this.loginError = 'Username atau Password salah!';
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            this.isAdmin = true;
+                            localStorage.setItem('sabawa_admin', 'true');
+                            this.showLoginModal = false;
+                            this.loginError = '';
+                            this.activeTab = 'admin';
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Login Admin Berhasil',
+                                text: "Selamat datang kembali di Dashboard Admin " + this.appSettings.appName + "!",
+                                confirmButtonColor: '#7e22ce',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                customClass: { popup: 'rounded-3xl' }
+                            });
+                        } else {
+                            this.loginError = data.message || 'Username atau Password salah!';
+                        }
+                    } catch (e) {
+                        // Offline / fallback verification
+                        if (this.loginForm.username === 'admin' && (this.loginForm.password === 'admin' || this.loginForm.password === 'sabawa2026')) {
+                            this.isAdmin = true;
+                            localStorage.setItem('sabawa_admin', 'true');
+                            this.showLoginModal = false;
+                            this.loginError = '';
+                            this.activeTab = 'admin';
+                        } else {
+                            this.loginError = 'Koneksi gagal atau kredensial salah!';
+                        }
                     }
                 },
 
-                logoutAdmin() {
+                async logoutAdmin() {
+                    try {
+                        await fetch('/api/admin/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            }
+                        });
+                    } catch (e) {}
                     this.isAdmin = false;
                     localStorage.removeItem('sabawa_admin');
                     if (this.activeTab === 'admin') this.activeTab = 'home';
@@ -1950,7 +2037,7 @@
                         title: 'Logout Admin',
                         text: 'Anda telah keluar dari Dashboard Admin.',
                         confirmButtonColor: '#7e22ce',
-                        timer: 2000,
+                        timer: 1500,
                         timerProgressBar: true,
                         customClass: { popup: 'rounded-3xl' }
                     });
@@ -2051,12 +2138,16 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
                             },
                             body: JSON.stringify(payload)
                         });
 
-                        if (!res.ok) throw new Error('Gagal menyimpan data ke MySQL server.');
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan data ke MySQL server.');
+                        }
                         const result = await res.json();
 
                         if (result.success && result.record) {
@@ -2121,29 +2212,22 @@
                         id: item.id,
                         nama: item.nama,
                         nim: item.nim,
-                        gender: item.jenisKelamin,
-                        kelas: item.kelas,
+                        gender: item.jenisKelamin || 'L',
+                        kelas: item.kelas || 'Palembang A 2024',
                         sekolah: item.sekolah || '',
-                        tanggal: item.tanggal,
-                        penguji: item.penguji,
-                        trialsServisPendek: (item.trialsServisPendek && item.trialsServisPendek.length === 20)
-                            ? [...item.trialsServisPendek]
-                            : Array(20).fill(Math.round((item.skorServisPendek || 0) / 20)),
-                        skorServisPendek: item.skorServisPendek ?? 0,
-                        trialsServisPanjang: (item.trialsServisPanjang && item.trialsServisPanjang.length === 20)
-                            ? [...item.trialsServisPanjang]
-                            : Array(20).fill(Math.round((item.skorServisPanjang || 0) / 20)),
-                        skorServisPanjang: item.skorServisPanjang ?? 0,
-                        trialsLob: (item.trialsLob && item.trialsLob.length === 20)
-                            ? [...item.trialsLob]
-                            : Array(20).fill(Math.round((item.skorLob || 0) / 20)),
-                        skorLob: item.skorLob ?? 0,
-                        trialsSmash: (item.trialsSmash && item.trialsSmash.length === 20)
-                            ? [...item.trialsSmash]
-                            : Array(20).fill(Math.round((item.skorSmash || 0) / 20)),
-                        skorSmash: item.skorSmash ?? 0
+                        tanggal: item.tanggal || new Date().toISOString().split('T')[0],
+                        penguji: item.penguji || 'Silvi Aryanti, M.Pd.',
+                        trialsServisPendek: (item.trialsServisPendek && item.trialsServisPendek.length === 20) ? [...item.trialsServisPendek] : Array(20).fill(0),
+                        skorServisPendek: item.skorServisPendek || 0,
+                        trialsServisPanjang: (item.trialsServisPanjang && item.trialsServisPanjang.length === 20) ? [...item.trialsServisPanjang] : Array(20).fill(0),
+                        skorServisPanjang: item.skorServisPanjang || 0,
+                        trialsLob: (item.trialsLob && item.trialsLob.length === 20) ? [...item.trialsLob] : Array(20).fill(0),
+                        skorLob: item.skorLob || 0,
+                        trialsSmash: (item.trialsSmash && item.trialsSmash.length === 20) ? [...item.trialsSmash] : Array(20).fill(0),
+                        skorSmash: item.skorSmash || 0
                     };
-                    this.activeTab = 'form';
+                    this.activeTab = 'assessment';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
 
                 deleteRecord(id) {
@@ -2160,7 +2244,17 @@
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
-                                await fetch(`/api/assessments/${id}`, { method: 'DELETE' });
+                                const res = await fetch(`/api/assessments/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!res.ok) {
+                                    const errData = await res.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus data tes.');
+                                }
                                 this.records = this.records.filter(r => r.id !== id);
                                 this.saveToLocalStorageFallback();
                                 Swal.fire({
@@ -2191,9 +2285,17 @@
                     try {
                         const res = await fetch('/api/materis', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify(this.materiForm)
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan materi.');
+                        }
                         const data = await res.json();
                         if (data.materi) {
                             const idx = this.materis.findIndex(m => m.id === data.materi.id);
@@ -2216,10 +2318,24 @@
                         confirmButtonText: 'Ya, hapus'
                     }).then(async (res) => {
                         if (res.isConfirmed) {
-                            await fetch(`/api/materis/${id}`, { method: 'DELETE' });
-                            this.materis = this.materis.filter(m => m.id !== id);
-                            this.saveToLocalStorageFallback();
-                            Swal.fire({ icon: 'success', title: 'Materi Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            try {
+                                const response = await fetch(`/api/materis/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!response.ok) {
+                                    const errData = await response.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus materi.');
+                                }
+                                this.materis = this.materis.filter(m => m.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({ icon: 'success', title: 'Materi Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -2237,9 +2353,17 @@
                     try {
                         const res = await fetch('/api/videos', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify(this.videoForm)
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan video.');
+                        }
                         const data = await res.json();
                         if (data.video) {
                             const idx = this.videos.findIndex(v => v.id === data.video.id);
@@ -2262,10 +2386,24 @@
                         confirmButtonText: 'Ya, hapus'
                     }).then(async (res) => {
                         if (res.isConfirmed) {
-                            await fetch(`/api/videos/${id}`, { method: 'DELETE' });
-                            this.videos = this.videos.filter(v => v.id !== id);
-                            this.saveToLocalStorageFallback();
-                            Swal.fire({ icon: 'success', title: 'Video Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            try {
+                                const response = await fetch(`/api/videos/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!response.ok) {
+                                    const errData = await response.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus video.');
+                                }
+                                this.videos = this.videos.filter(v => v.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({ icon: 'success', title: 'Video Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -2283,9 +2421,17 @@
                     try {
                         const res = await fetch('/api/faqs', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify(this.faqForm)
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan FAQ.');
+                        }
                         const data = await res.json();
                         if (data.faq) {
                             const idx = this.faqs.findIndex(f => f.id === data.faq.id);
@@ -2308,10 +2454,24 @@
                         confirmButtonText: 'Ya, hapus'
                     }).then(async (res) => {
                         if (res.isConfirmed) {
-                            await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
-                            this.faqs = this.faqs.filter(f => f.id !== id);
-                            this.saveToLocalStorageFallback();
-                            Swal.fire({ icon: 'success', title: 'FAQ Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            try {
+                                const response = await fetch(`/api/faqs/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!response.ok) {
+                                    const errData = await response.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus FAQ.');
+                                }
+                                this.faqs = this.faqs.filter(f => f.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({ icon: 'success', title: 'FAQ Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -2329,9 +2489,17 @@
                     try {
                         const res = await fetch('/api/researchers', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify(this.researcherForm)
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan peneliti.');
+                        }
                         const data = await res.json();
                         if (data.researcher) {
                             const idx = this.researchers.findIndex(r => r.id === data.researcher.id);
@@ -2354,10 +2522,24 @@
                         confirmButtonText: 'Ya, hapus'
                     }).then(async (res) => {
                         if (res.isConfirmed) {
-                            await fetch(`/api/researchers/${id}`, { method: 'DELETE' });
-                            this.researchers = this.researchers.filter(r => r.id !== id);
-                            this.saveToLocalStorageFallback();
-                            Swal.fire({ icon: 'success', title: 'Data Peneliti Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            try {
+                                const response = await fetch(`/api/researchers/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!response.ok) {
+                                    const errData = await response.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus peneliti.');
+                                }
+                                this.researchers = this.researchers.filter(r => r.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({ icon: 'success', title: 'Data Peneliti Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -2369,12 +2551,20 @@
                     try {
                         const res = await fetch('/api/schools', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify({
                                 id: this.schoolForm.id,
                                 nama: this.schoolForm.nama.trim()
                             })
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal menyimpan sekolah.');
+                        }
                         const data = await res.json();
                         if (data.school) {
                             const idx = this.schools.findIndex(s => s.id === data.school.id);
@@ -2413,10 +2603,24 @@
                         confirmButtonText: 'Ya, hapus'
                     }).then(async (res) => {
                         if (res.isConfirmed) {
-                            await fetch(`/api/schools/${id}`, { method: 'DELETE' });
-                            this.schools = this.schools.filter(s => s.id !== id);
-                            this.saveToLocalStorageFallback();
-                            Swal.fire({ icon: 'success', title: 'Sekolah Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            try {
+                                const response = await fetch(`/api/schools/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': this.csrfToken()
+                                    }
+                                });
+                                if (!response.ok) {
+                                    const errData = await response.json().catch(() => ({}));
+                                    throw new Error(errData.message || 'Gagal menghapus sekolah.');
+                                }
+                                this.schools = this.schools.filter(s => s.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({ icon: 'success', title: 'Sekolah Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -2426,9 +2630,17 @@
                     try {
                         const res = await fetch('/api/settings', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken()
+                            },
                             body: JSON.stringify(this.appSettings)
                         });
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            throw new Error(errData.message || 'Gagal memperbarui pengaturan.');
+                        }
                         const data = await res.json();
                         if (data.appSettings) {
                             this.appSettings = { ...this.appSettings, ...data.appSettings };
@@ -2519,11 +2731,376 @@
                     document.body.removeChild(link);
                 },
 
+                getPdfBadgeStyle(cat) {
+                    switch(cat) {
+                        case 'Sangat Tinggi': return 'background-color: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;';
+                        case 'Tinggi': return 'background-color: #dcfce7; color: #166534; border: 1px solid #86efac;';
+                        case 'Sedang': return 'background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d;';
+                        case 'Kurang': return 'background-color: #ffedd5; color: #9a3412; border: 1px solid #fdba74;';
+                        case 'Sangat Kurang': return 'background-color: #ffe4e6; color: #9f1239; border: 1px solid #fda4af;';
+                        default: return 'background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;';
+                    }
+                },
+
+                generateRekapHTML(items) {
+                    let rows = '';
+                    items.forEach((r, idx) => {
+                        const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                        rows += `
+                        <tr style="background-color: ${bg};">
+                            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; font-weight: bold;">${idx + 1}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; white-space: nowrap; font-size: 9px;">${r.tanggal || '-'}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; font-weight: bold; color: #0f172a;">${r.nama}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; font-family: monospace; font-size: 9px;">${r.nim}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center; font-weight: bold;">${r.jenisKelamin || 'L'}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px;">${r.kelas || '-'}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px;">${r.sekolah || '-'}</td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+                                <div style="font-weight: 800; font-size: 11px; color: #581c87;">${r.skorServisPendek ?? 0}</div>
+                                <div style="font-size: 8.5px; color: #64748b;">${r.normaServisPendek || '-'}</div>
+                            </td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+                                <div style="font-weight: 800; font-size: 11px; color: #3730a3;">${r.skorServisPanjang ?? 0}</div>
+                                <div style="font-size: 8.5px; color: #64748b;">${r.normaServisPanjang || '-'}</div>
+                            </td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+                                <div style="font-weight: 800; font-size: 11px; color: #1e40af;">${r.skorLob ?? 0}</div>
+                                <div style="font-size: 8.5px; color: #64748b;">${r.normaLob || '-'}</div>
+                            </td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+                                <div style="font-weight: 800; font-size: 11px; color: #9f1239;">${r.skorSmash ?? 0}</div>
+                                <div style="font-size: 8.5px; color: #64748b;">${r.normaSmash || '-'}</div>
+                            </td>
+                            <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.evaluasiTotal)}">${r.evaluasiTotal || '-'}</span>
+                            </td>
+                        </tr>`;
+                    });
+
+                    return `
+                    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; padding: 20px; background: #ffffff;">
+                        <!-- KOP SURAT RESMI -->
+                        <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 14px;">
+                            <img src="${this.appSettings.appLogo || '/images/logo1.png'}" style="height: 62px; width: auto; margin-right: 16px;" alt="Logo" />
+                            <div style="text-align: center; flex: 1;">
+                                <h3 style="font-size: 12.5px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155; letter-spacing: 0.5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h3>
+                                <h2 style="font-size: 15px; font-weight: 900; margin: 2px 0; text-transform: uppercase; color: #0f172a;">UNIVERSITAS SRIWIJAYA</h2>
+                                <h3 style="font-size: 12.5px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155;">FAKULTAS KEGURUAN DAN ILMU PENDIDIKAN</h3>
+                                <p style="font-size: 10.5px; font-weight: 700; margin: 2px 0 0 0; color: #6b21a8;">PROGRAM STUDI PENDIDIKAN JASMANI DAN KESEHATAN</p>
+                                <p style="font-size: 9px; margin: 2px 0 0 0; color: #64748b;">Jalan Palembang - Prabumulih KM. 32, Indralaya, Ogan Ilir, Sumatera Selatan 30662</p>
+                            </div>
+                        </div>
+
+                        <!-- JUDUL REKAP -->
+                        <div style="text-align: center; margin-bottom: 14px;">
+                            <h2 style="font-size: 14px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #1e1b4b;">REKAPITULASI HASIL ASESMEN KETERAMPILAN BULUTANGKIS</h2>
+                            <p style="font-size: 10.5px; color: #475569; margin: 2px 0 0 0; font-weight: 600;">Instrumen SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp)</p>
+                        </div>
+
+                        <!-- METADATA INFO -->
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #334155; margin-bottom: 10px; background: #f8fafc; padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            <span><strong>Tanggal Cetak:</strong> ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span>
+                            <span><strong>Filter Sekolah:</strong> ${this.filterSchool || 'Semua Sekolah'}</span>
+                            <span><strong>Kategori:</strong> ${this.filterCategory || 'Semua Kategori'}</span>
+                            <span><strong>Total Data:</strong> ${items.length} Siswa</span>
+                        </div>
+
+                        <!-- TABEL DATA FORMAL -->
+                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: left; margin-bottom: 14px;">
+                            <thead>
+                                <tr style="background-color: #4c1d95; color: #ffffff;">
+                                    <th style="border: 1px solid #334155; padding: 6px 4px; text-align: center; width: 25px;">No</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; width: 65px;">Tanggal</th>
+                                    <th style="border: 1px solid #334155; padding: 6px;">Nama Siswa</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; width: 60px;">NIM</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 30px;">L/P</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; width: 65px;">Kelas</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; width: 85px;">Sekolah</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 75px;">Servis Pendek</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 75px;">Servis Panjang</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 65px;">Lob</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 65px;">Smash</th>
+                                    <th style="border: 1px solid #334155; padding: 6px; text-align: center; width: 85px;">Evaluasi Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows}
+                            </tbody>
+                        </table>
+
+                        <!-- SUMMARY STATISTIK -->
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px; font-size: 9.5px;">
+                            <div style="flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #faf5ff;">
+                                <strong style="color: #581c87; font-size: 10px; display: block; margin-bottom: 4px;">Distribusi Predikat Norma:</strong>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <span>Sangat Tinggi: <strong>${this.getCategoryCount('Sangat Tinggi')}</strong></span>
+                                    <span>Tinggi: <strong>${this.getCategoryCount('Tinggi')}</strong></span>
+                                    <span>Sedang: <strong>${this.getCategoryCount('Sedang')}</strong></span>
+                                    <span>Kurang: <strong>${this.getCategoryCount('Kurang')}</strong></span>
+                                    <span>Sangat Kurang: <strong>${this.getCategoryCount('Sangat Kurang')}</strong></span>
+                                </div>
+                            </div>
+                            <div style="width: 140px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; text-align: center;">
+                                <span style="color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: bold;">Rata-rata Skor:</span>
+                                <div style="font-size: 15px; font-weight: 900; color: #581c87; margin-top: 2px;">${this.getAverageScore()}</div>
+                            </div>
+                        </div>
+
+                        <!-- TANDA TANGAN PENGESAHAN -->
+                        <div style="display: flex; justify-content: flex-end; margin-top: 20px; font-size: 10.5px;">
+                            <div style="text-align: center; width: 220px;">
+                                <p style="margin: 0;">Indralaya, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                                <p style="margin: 3px 0 50px 0; font-weight: 600;">Dosen Pengampu / Peneliti Utama,</p>
+                                <p style="margin: 0; font-weight: 900; text-decoration: underline;">${(this.researchers[0] ? this.researchers[0].name : 'Silvi Aryanti, M.Pd.')}</p>
+                                <p style="margin: 2px 0 0 0; font-size: 9.5px; color: #64748b;">NIP. 198804242019032014</p>
+                            </div>
+                        </div>
+                    </div>`;
+                },
+
+                generateDetailCertificateHTML(r) {
+                    if (!r) return '';
+                    const spTrials = (r.trialsServisPendek && r.trialsServisPendek.length) ? r.trialsServisPendek.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#f3e8ff; border:1px solid #d8b4fe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#581c87; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const sjTrials = (r.trialsServisPanjang && r.trialsServisPanjang.length) ? r.trialsServisPanjang.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#e0e7ff; border:1px solid #c7d2fe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#3730a3; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const lobTrials = (r.trialsLob && r.trialsLob.length) ? r.trialsLob.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#dbeafe; border:1px solid #bfdbfe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#1e40af; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const smashTrials = (r.trialsSmash && r.trialsSmash.length) ? r.trialsSmash.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#ffe4e6; border:1px solid #fecdd3; border-radius:3px; font-size:8.5px; font-weight:bold; color:#9f1239; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+
+                    return `
+                    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; padding: 24px; max-width: 800px; margin: 0 auto; background: #ffffff;">
+                        <!-- KOP SURAT RESMI -->
+                        <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 16px;">
+                            <img src="${this.appSettings.appLogo || '/images/logo1.png'}" style="height: 68px; width: auto; margin-right: 18px;" alt="Logo" />
+                            <div style="text-align: center; flex: 1;">
+                                <h3 style="font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155; letter-spacing: 0.5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h3>
+                                <h2 style="font-size: 16px; font-weight: 900; margin: 2px 0; text-transform: uppercase; color: #0f172a;">UNIVERSITAS SRIWIJAYA</h2>
+                                <h3 style="font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155;">FAKULTAS KEGURUAN DAN ILMU PENDIDIKAN</h3>
+                                <p style="font-size: 11px; font-weight: 700; margin: 2px 0 0 0; color: #6b21a8;">PROGRAM STUDI PENDIDIKAN JASMANI DAN KESEHATAN</p>
+                                <p style="font-size: 9.5px; margin: 2px 0 0 0; color: #64748b;">Jalan Palembang - Prabumulih KM. 32, Indralaya, Ogan Ilir, Sumatera Selatan 30662</p>
+                            </div>
+                        </div>
+
+                        <!-- JUDUL DOKUMEN -->
+                        <div style="text-align: center; margin-bottom: 18px;">
+                            <h2 style="font-size: 15px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #1e1b4b;">KARTU HASIL TES KETERAMPILAN BULUTANGKIS</h2>
+                            <p style="font-size: 11px; color: #475569; margin: 3px 0 0 0; font-weight: 600;">Instrumen Penilaian SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp)</p>
+                        </div>
+
+                        <!-- BIODATA SISWA -->
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 11px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="width: 16%; padding: 3px 0; color: #64748b;">Nama Lengkap</td>
+                                    <td style="width: 34%; padding: 3px 0;">: <strong style="font-size: 12px; color: #0f172a;">${r.nama}</strong></td>
+                                    <td style="width: 16%; padding: 3px 0; color: #64748b;">Tanggal Tes</td>
+                                    <td style="width: 34%; padding: 3px 0;">: <strong>${r.tanggal || '-'}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #64748b;">NIM / No. Peserta</td>
+                                    <td style="padding: 3px 0;">: <strong>${r.nim}</strong></td>
+                                    <td style="padding: 3px 0; color: #64748b;">Kelas / Rombel</td>
+                                    <td style="padding: 3px 0;">: <strong>${r.kelas || '-'}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 0; color: #64748b;">Jenis Kelamin</td>
+                                    <td style="padding: 3px 0;">: <strong>${r.jenisKelamin === 'L' ? 'Laki-Laki' : 'Perempuan'}</strong></td>
+                                    <td style="padding: 3px 0; color: #64748b;">Asal Sekolah</td>
+                                    <td style="padding: 3px 0;">: <strong>${r.sekolah || '-'}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- TABEL RINCIAN 4 KETERAMPILAN -->
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 18px;">
+                            <thead>
+                                <tr style="background-color: #4c1d95; color: #ffffff;">
+                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 35px;">No</th>
+                                    <th style="border: 1px solid #334155; padding: 8px; text-align: left;">Keterampilan Teknik</th>
+                                    <th style="border: 1px solid #334155; padding: 8px; text-align: left;">Rincian 20 Kali Percobaan (Trial 1 s.d 20)</th>
+                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 85px;">Skor Total</th>
+                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 100px;">Kategori Norma</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Servis Pendek -->
+                                <tr style="border-bottom: 1px solid #cbd5e1;">
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">1</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #581c87;">Servis Pendek (Short Serve)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${spTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #581c87;">${r.skorServisPendek ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaServisPendek)}">${r.normaServisPendek || '-'}</span>
+                                    </td>
+                                </tr>
+                                <!-- Servis Panjang -->
+                                <tr style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1;">
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">2</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #3730a3;">Servis Panjang (Long Serve)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${sjTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #3730a3;">${r.skorServisPanjang ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaServisPanjang)}">${r.normaServisPanjang || '-'}</span>
+                                    </td>
+                                </tr>
+                                <!-- Pukulan Lob -->
+                                <tr style="border-bottom: 1px solid #cbd5e1;">
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">3</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #1e40af;">Pukulan Lob (High Clear)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${lobTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #1e40af;">${r.skorLob ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaLob)}">${r.normaLob || '-'}</span>
+                                    </td>
+                                </tr>
+                                <!-- Pukulan Smash -->
+                                <tr style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1;">
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">4</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #9f1239;">Pukulan Smash (Smash Test)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${smashTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #9f1239;">${r.skorSmash ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaSmash)}">${r.normaSmash || '-'}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- KOTAK EVALUASI KESELURUHAN -->
+                        <div style="background: linear-gradient(135deg, #7e22ce 0%, #4c1d95 100%); color: #ffffff; padding: 14px 18px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <div>
+                                <p style="font-size: 9.5px; color: #e9d5ff; text-transform: uppercase; font-weight: 700; margin: 0;">Evaluasi Keterampilan Keseluruhan</p>
+                                <h3 style="font-size: 17px; font-weight: 900; margin: 2px 0 0 0; color: #ffffff;">${r.evaluasiTotal || '-'}</h3>
+                            </div>
+                            <div style="text-align: right; font-size: 11px;">
+                                <p style="color: #e9d5ff; font-size: 9.5px; margin: 0;">Kriteria Standar Instrumen:</p>
+                                <p style="font-weight: 800; margin: 2px 0 0 0; color: #facc15;">Lengkap 4 Teknik Dasar Teruji</p>
+                            </div>
+                        </div>
+
+                        <!-- TANDA TANGAN PENGESAHAN -->
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 20px;">
+                            <div style="width: 200px; text-align: center;">
+                                <p style="margin: 0; color: #64748b;">Peserta Tes,</p>
+                                <div style="height: 50px;"></div>
+                                <p style="margin: 0; font-weight: 800; text-decoration: underline;">${r.nama}</p>
+                                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">NIM. ${r.nim}</p>
+                            </div>
+                            <div style="width: 220px; text-align: center;">
+                                <p style="margin: 0;">Indralaya, ${r.tanggal || new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
+                                <p style="margin: 3px 0 0 0; font-weight: 600;">Dosen Pengampu / Peneliti Utama,</p>
+                                <div style="height: 50px;"></div>
+                                <p style="margin: 0; font-weight: 900; text-decoration: underline;">${r.penguji || (this.researchers[0] ? this.researchers[0].name : 'Silvi Aryanti, M.Pd.')}</p>
+                                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">NIP. 198804242019032014</p>
+                            </div>
+                        </div>
+                    </div>`;
+                },
+
+                exportRekapToPDF() {
+                    const items = this.filteredRecords;
+                    if (!items || items.length === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan',
+                            text: 'Tidak ada data asesmen untuk diekspor ke PDF.',
+                            confirmButtonColor: '#7e22ce'
+                        });
+                        return;
+                    }
+
+                    this.isExportingPdf = true;
+                    const container = document.createElement('div');
+                    container.innerHTML = this.generateRekapHTML(items);
+                    document.body.appendChild(container);
+
+                    const opt = {
+                        margin: [6, 6, 6, 6],
+                        filename: 'SA_BAWA_Rekap_Asesmen_' + new Date().toISOString().slice(0, 10) + '.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, logging: false },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                    };
+
+                    html2pdf().set(opt).from(container).save().then(() => {
+                        document.body.removeChild(container);
+                        this.isExportingPdf = false;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'PDF Berhasil Dibuat!',
+                            text: 'File rekap data tabel resmi telah diunduh.',
+                            timer: 2000,
+                            confirmButtonColor: '#7e22ce'
+                        });
+                    }).catch((err) => {
+                        if (container.parentNode) document.body.removeChild(container);
+                        this.isExportingPdf = false;
+                        console.error('PDF Export Error:', err);
+                        Swal.fire({ icon: 'error', title: 'Gagal Ekspor PDF', text: err.message });
+                    });
+                },
+
+                exportDetailToPDF() {
+                    if (!this.selectedRecord) return;
+                    this.isExportingPdf = true;
+                    const container = document.createElement('div');
+                    container.innerHTML = this.generateDetailCertificateHTML(this.selectedRecord);
+                    document.body.appendChild(container);
+
+                    const cleanName = (this.selectedRecord.nama || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
+                    const opt = {
+                        margin: [8, 8, 8, 8],
+                        filename: 'SA_BAWA_Hasil_Tes_' + cleanName + '_' + (this.selectedRecord.nim || '') + '.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, logging: false },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    html2pdf().set(opt).from(container).save().then(() => {
+                        document.body.removeChild(container);
+                        this.isExportingPdf = false;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'PDF Berhasil Dibuat!',
+                            text: 'Kartu hasil tes siswa telah diunduh.',
+                            timer: 2000,
+                            confirmButtonColor: '#7e22ce'
+                        });
+                    }).catch((err) => {
+                        if (container.parentNode) document.body.removeChild(container);
+                        this.isExportingPdf = false;
+                        console.error('PDF Export Error:', err);
+                        Swal.fire({ icon: 'error', title: 'Gagal Ekspor PDF', text: err.message });
+                    });
+                },
+
                 printAllReport() {
-                    window.print();
+                    const printable = document.getElementById('printable-area');
+                    if (!printable) {
+                        window.print();
+                        return;
+                    }
+                    printable.innerHTML = this.generateRekapHTML(this.filteredRecords);
+                    setTimeout(() => {
+                        window.print();
+                    }, 150);
+                },
+
+                printDetailCard() {
+                    if (!this.selectedRecord) return;
+                    const printable = document.getElementById('printable-area');
+                    if (!printable) {
+                        window.print();
+                        return;
+                    }
+                    printable.innerHTML = this.generateDetailCertificateHTML(this.selectedRecord);
+                    setTimeout(() => {
+                        window.print();
+                    }, 150);
                 }
             };
         }
     </script>
+
+    <!-- CLEAN PRINTABLE AREA CONTAINER (FOR FORMAL A4 PRINTING) -->
+    <div id="printable-area" class="hidden print:block"></div>
 </body>
 </html>
