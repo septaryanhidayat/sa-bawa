@@ -3022,18 +3022,6 @@
                         return;
                     }
 
-                exportRekapToPDF() {
-                    const items = this.filteredRecords;
-                    if (!items || items.length === 0) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Peringatan',
-                            text: 'Tidak ada data asesmen untuk diekspor ke PDF.',
-                            confirmButtonColor: '#7e22ce'
-                        });
-                        return;
-                    }
-
                     this.isExportingPdf = true;
                     const container = document.createElement('div');
                     container.style.width = '1080px';
@@ -3049,7 +3037,9 @@
                         html2canvas: {
                             scale: 2,
                             useCORS: true,
-                            logging: false
+                            logging: false,
+                            scrollY: 0,
+                            scrollX: 0
                         },
                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
                         pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' }
@@ -3091,7 +3081,9 @@
                         html2canvas: {
                             scale: 2,
                             useCORS: true,
-                            logging: false
+                            logging: false,
+                            scrollY: 0,
+                            scrollX: 0
                         },
                         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
