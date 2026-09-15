@@ -1,11 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/pesonaas/sa-badmintonapp.com/
-    - /bin/cp -R * $DEPLOYPATH
-    - /bin/mkdir -p $DEPLOYPATH/storage/framework/sessions
-    - /bin/mkdir -p $DEPLOYPATH/storage/framework/views
-    - /bin/mkdir -p $DEPLOYPATH/storage/framework/cache/data
-    - /bin/mkdir -p $DEPLOYPATH/storage/logs
-    - /bin/mkdir -p $DEPLOYPATH/bootstrap/cache
-    - /bin/chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
+    - /bin/mkdir -p /home/pesonaas/sa-badmintonapp.com/storage/framework/sessions /home/pesonaas/sa-badmintonapp.com/storage/framework/views /home/pesonaas/sa-badmintonapp.com/storage/framework/cache/data /home/pesonaas/sa-badmintonapp.com/storage/logs /home/pesonaas/sa-badmintonapp.com/bootstrap/cache
+    - /bin/chmod -R 775 /home/pesonaas/sa-badmintonapp.com/storage /home/pesonaas/sa-badmintonapp.com/bootstrap/cache
+
