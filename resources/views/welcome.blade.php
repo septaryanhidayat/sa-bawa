@@ -456,14 +456,22 @@
                         <div x-show="activeTab === 'form'" x-transition:enter="transition ease-out duration-200" class="p-4 space-y-4">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <h2 class="text-base font-extrabold text-purple-950">
+                                    <h2 class="text-base font-extrabold text-purple-950" x-text="form.id ? 'Edit Data Penilaian' : 'Form Input Penilaian'">
                                         Form Input Penilaian
                                     </h2>
-                                    <p class="text-[11px] text-slate-500">Masukkan identitas & hasil percobaan tes</p>
+                                    <p class="text-[11px] text-slate-500" x-text="form.id ? 'Perbarui identitas & hasil percobaan tes peserta' : 'Masukkan identitas & hasil percobaan tes'">Masukkan identitas & hasil percobaan tes</p>
                                 </div>
-                                <span class="bg-purple-100 text-purple-800 text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold">
-                                    FORM
-                                </span>
+                                <div class="flex items-center space-x-1.5">
+                                    <template x-if="form.id">
+                                        <button type="button" @click="resetForm(); activeTab = 'data'" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-[10px] px-2.5 py-1 rounded-full font-bold transition-all flex items-center space-x-1">
+                                            <i class="fa-solid fa-xmark text-[9px]"></i>
+                                            <span>Batal Edit</span>
+                                        </button>
+                                    </template>
+                                    <span class="bg-purple-100 text-purple-800 text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold" x-text="form.id ? 'MODE EDIT' : 'FORM'">
+                                        FORM
+                                    </span>
+                                </div>
                             </div>
 
                             <form @submit.prevent="saveRecord()" class="space-y-4">
@@ -755,10 +763,17 @@
                                         <p class="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Evaluasi Akhir</p>
                                         <h3 class="text-base sm:text-lg font-black" x-text="calculateOverallCategory(form.skorServisPendek, form.skorServisPanjang, form.skorLob, form.skorSmash)"></h3>
                                     </div>
-                                    <button type="submit" class="bg-white text-purple-950 font-black px-5 py-2.5 rounded-xl text-sm hover:bg-purple-50 shadow-md hover:shadow-lg transition-all flex items-center space-x-2 active:scale-95">
-                                        <i class="fa-solid fa-floppy-disk text-purple-700"></i>
-                                        <span>Simpan Data</span>
-                                    </button>
+                                    <div class="flex items-center space-x-2">
+                                        <template x-if="form.id">
+                                            <button type="button" @click="resetForm(); activeTab = 'data'" class="bg-white/20 hover:bg-white/30 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs transition-all">
+                                                Batal
+                                            </button>
+                                        </template>
+                                        <button type="submit" class="bg-white text-purple-950 font-black px-5 py-2.5 rounded-xl text-sm hover:bg-purple-50 shadow-md hover:shadow-lg transition-all flex items-center space-x-2 active:scale-95">
+                                            <i class="fa-solid fa-floppy-disk text-purple-700"></i>
+                                            <span x-text="form.id ? 'Perbarui Data' : 'Simpan Data'">Simpan Data</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -2226,7 +2241,7 @@
                         trialsSmash: (item.trialsSmash && item.trialsSmash.length === 20) ? [...item.trialsSmash] : Array(20).fill(0),
                         skorSmash: item.skorSmash || 0
                     };
-                    this.activeTab = 'assessment';
+                    this.activeTab = 'form';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
 

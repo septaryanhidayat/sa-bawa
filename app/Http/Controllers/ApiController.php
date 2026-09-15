@@ -273,7 +273,7 @@ class ApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Penilaian berhasil disimpan ke database MySQL.',
+            'message' => 'Penilaian berhasil disimpan ke database.',
             'record' => [
                 'id' => $assessment->id,
                 'nama' => $assessment->nama,
