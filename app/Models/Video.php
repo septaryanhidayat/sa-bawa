@@ -6,10 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Video extends Model
 {
-    protected $fillable = [
-        'judul',
-        'youtube_url',
-        'deskripsi',
-        'kategori'
-    ];
+    protected $guarded = [];
 }

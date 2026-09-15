@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/pesonaas/sa-badmintonapp.com/
+    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp -f .htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/cp -f public/.htaccess $DEPLOYPATH/public/.htaccess 2>/dev/null || true

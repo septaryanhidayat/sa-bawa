@@ -22,31 +22,54 @@ return new class extends Migration
             $table->string('sekolah')->nullable();
             $table->date('tanggal');
             $table->string('penguji')->default('Silvi Aryanti, M.Pd.');
+
+            // Servis Pendek (20x percobaan + akumulasi)
+            $table->json('trials_servis_pendek')->nullable();
             $table->integer('skor_servis_pendek')->nullable();
             $table->string('norma_servis_pendek')->nullable();
+
+            // Servis Panjang (20x percobaan + akumulasi)
+            $table->json('trials_servis_panjang')->nullable();
             $table->integer('skor_servis_panjang')->nullable();
             $table->string('norma_servis_panjang')->nullable();
+
+            // Pukulan Lob (20x percobaan + akumulasi)
+            $table->json('trials_lob')->nullable();
             $table->integer('skor_lob')->nullable();
             $table->string('norma_lob')->nullable();
+
+            // Pukulan Smash (20x percobaan + akumulasi)
+            $table->json('trials_smash')->nullable();
             $table->integer('skor_smash')->nullable();
             $table->string('norma_smash')->nullable();
+
+            // Evaluasi Total Rata-rata
             $table->string('evaluasi_total')->nullable();
             $table->timestamps();
         });
 
-        // 2. Table Materis
+        // 2. Table Schools
+        Schema::dropIfExists('schools');
+        Schema::create('schools', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama');
+            $table->timestamps();
+        });
+
+        // 3. Table Materis
         Schema::dropIfExists('materis');
         Schema::create('materis', function (Blueprint $table) {
             $table->id();
             $table->string('judul');
             $table->string('kategori'); // overview, servis_pendek, servis_panjang, lob, smash, spesifikasi
+            $table->string('photo')->nullable();
             $table->text('deskripsi');
             $table->text('petunjuk')->nullable();
             $table->integer('urutan')->default(1);
             $table->timestamps();
         });
 
-        // 3. Table Videos
+        // 4. Table Videos
         Schema::dropIfExists('videos');
         Schema::create('videos', function (Blueprint $table) {
             $table->id();
@@ -57,7 +80,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 4. Table FAQs
+        // 5. Table FAQs
         Schema::dropIfExists('faqs');
         Schema::create('faqs', function (Blueprint $table) {
             $table->id();
@@ -67,7 +90,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 5. Table About Settings & Team
+        // 6. Table Researchers
+        Schema::dropIfExists('researchers');
+        Schema::create('researchers', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('role');
+            $table->string('photo')->nullable();
+            $table->boolean('is_leader')->default(false);
+            $table->integer('urutan')->default(1);
+            $table->timestamps();
+        });
+
+        // 7. Table About Settings
         Schema::dropIfExists('about_settings');
         Schema::create('about_settings', function (Blueprint $table) {
             $table->id();
@@ -83,9 +118,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('assessments');
+        Schema::dropIfExists('schools');
         Schema::dropIfExists('materis');
         Schema::dropIfExists('videos');
         Schema::dropIfExists('faqs');
+        Schema::dropIfExists('researchers');
         Schema::dropIfExists('about_settings');
     }
 };

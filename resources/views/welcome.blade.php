@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SA'BAWA - Silvi Aryanti' Badminton Assessment WebApp</title>
     <link rel="icon" type="image/png" href="/images/logo1.png">
     
@@ -68,6 +69,14 @@
                 .print-only { display: block !important; }
                 body { background: white !important; color: black !important; }
             }
+            input[type=number]::-webkit-inner-spin-button, 
+            input[type=number]::-webkit-outer-spin-button { 
+                -webkit-appearance: none; 
+                margin: 0; 
+            }
+            input[type=number] { 
+                -moz-appearance: textfield; 
+            }
         </style>
     @endif
 
@@ -91,8 +100,23 @@
                 </div>
             </div>
 
-            <!-- Admin Badge & Controls -->
+            <!-- Status Sync & Admin Badge & Controls -->
             <div class="flex items-center space-x-3">
+                <!-- MySQL Status & Sync Button -->
+                <div class="flex items-center space-x-2 mr-1">
+                    <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-colors shadow-sm"
+                          :class="dbConnected ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
+                        <span class="w-2 h-2 rounded-full" :class="dbConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+                        <span x-text="dbConnected ? ((dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + ' Terhubung') : 'Offline Cache'"></span>
+                    </span>
+                    <button @click="loadAllData(true)" :disabled="isSyncing"
+                            class="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-purple-100/70 hover:bg-purple-200/80 text-purple-800 text-[11px] font-bold transition-all disabled:opacity-50"
+                            title="Sinkronkan data dari MySQL">
+                        <i class="fa-solid fa-arrows-rotate" :class="isSyncing ? 'animate-spin' : ''"></i>
+                        <span class="hidden md:inline">Sinkron</span>
+                    </button>
+                </div>
+
                 <template x-if="isAdmin">
                     <div class="flex items-center space-x-2">
                         <button @click="activeTab = 'admin'" class="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md hover:from-emerald-700 hover:to-teal-700 transition-all">
@@ -246,11 +270,15 @@
                             <div class="bank-card-bright rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <div class="flex items-center space-x-2">
+                                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
                                             <span class="bg-white/20 backdrop-blur-md text-[11px] px-2.5 py-0.5 rounded-full font-medium text-purple-100">
                                                 👋 Halo, Selamat Datang
                                             </span>
                                             <span class="text-[11px] text-purple-200 font-semibold" x-text="isAdmin ? 'Admin' : 'Guest'"></span>
+                                            <button @click="loadAllData(true)" :disabled="isSyncing" class="bg-white/25 hover:bg-white/35 text-white px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center space-x-1 transition-all" title="Sinkronkan Database">
+                                                <i class="fa-solid fa-arrows-rotate text-[8px]" :class="isSyncing ? 'animate-spin' : ''"></i>
+                                                <span x-text="(dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + ' Sync'"></span>
+                                            </button>
                                         </div>
                                         <h2 class="text-xl font-extrabold mt-1 tracking-tight" x-text="appSettings.appName + ' Assessment'"></h2>
                                         <p class="text-[11px] text-purple-200 mt-0.5" x-text="appSettings.appSubtitle"></p>
@@ -480,70 +508,225 @@
                                     </div>
                                 </div>
 
-                                <!-- INPUT SKOR HASIL TES -->
-                                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
-                                    <h3 class="text-xs font-bold text-purple-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex justify-between items-center">
-                                        <span><i class="fa-solid fa-list-check text-purple-600 mr-1"></i> Skor Tes & Konversi Norma</span>
-                                        <span class="text-[9px] text-amber-700 font-bold">20x Percobaan</span>
-                                    </h3>
-
-                                    <!-- 1. SERVIS PENDEK -->
-                                    <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5">
-                                        <div class="flex justify-between items-center">
-                                            <label class="text-xs font-bold text-slate-800">1. Servis Pendek (Short Serve)</label>
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaServisPendek(form.skorServisPendek))">
-                                                <span x-text="calculateNormaServisPendek(form.skorServisPendek)"></span>
-                                            </span>
+                                <!-- INPUT SKOR HASIL TES (20x PERCOBAAN PER TEKNIK) -->
+                                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3.5">
+                                    <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
+                                        <div>
+                                            <h3 class="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center">
+                                                <i class="fa-solid fa-list-check text-purple-600 mr-1.5"></i> Input 20x Percobaan Tes
+                                            </h3>
+                                            <p class="text-[10px] text-slate-500">Ketik nilai (0 - 5) pada tiap kesempatan. Skor akumulasi & norma terhitung otomatis.</p>
                                         </div>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="number" min="0" max="100" x-model.number="form.skorServisPendek" placeholder="Skor"
-                                                   class="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs text-slate-900 font-bold text-center focus:outline-none focus:border-purple-600">
-                                            <p class="text-[9px] text-slate-500">Norma: &gt;82.2 (Sangat Tinggi), 67-82 (Tinggi), 51-66 (Sedang)</p>
+                                        <span class="bg-purple-100 text-purple-800 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                                            20x Coba
+                                        </span>
+                                    </div>
+
+                                    <!-- 1. SERVIS PENDEK (SHORT SERVE) -->
+                                    <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200 space-y-2.5">
+                                        <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleTechniqueExpand('sp')">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center font-extrabold text-[11px] shadow-sm">1</span>
+                                                <div>
+                                                    <h4 class="text-xs font-extrabold text-slate-900">Servis Pendek (Short Serve)</h4>
+                                                    <p class="text-[10px] text-slate-500">
+                                                        Akumulasi: <strong class="text-purple-700 font-extrabold text-xs" x-text="form.skorServisPendek ?? 0"></strong><span class="text-slate-400">/100</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaServisPendek(form.skorServisPendek))">
+                                                    <span x-text="calculateNormaServisPendek(form.skorServisPendek)"></span>
+                                                </span>
+                                                <i class="fa-solid text-xs text-slate-400 transition-transform duration-200" :class="expandedTechniques.sp ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Grid 20 Percobaan SP -->
+                                        <div x-show="expandedTechniques.sp" x-transition class="space-y-2 pt-2 border-t border-slate-200/70">
+                                            <div class="flex justify-between items-center text-[10px]">
+                                                <span class="text-slate-500 font-medium">Nilai per kesempatan (0 - 5):</span>
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="text-[9px] text-slate-400 mr-1">Cepat:</span>
+                                                    <button type="button" @click="quickFillTrials('sp', 5)" class="px-1.5 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded text-[9px] transition-all">5</button>
+                                                    <button type="button" @click="quickFillTrials('sp', 4)" class="px-1.5 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded text-[9px] transition-all">4</button>
+                                                    <button type="button" @click="quickFillTrials('sp', 3)" class="px-1.5 py-0.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded text-[9px] transition-all">3</button>
+                                                    <button type="button" @click="resetTrials('sp')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded text-[9px] transition-all">Reset</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                                <template x-for="i in 20" :key="'sp-'+i">
+                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-purple-600 focus-within:ring-2 focus-within:ring-purple-200 transition-all">
+                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5"
+                                                               :id="'input-sp-'+(i-1)"
+                                                               x-model.number="form.trialsServisPendek[i-1]"
+                                                               @input="onTrialInput('sp', i-1, $event)"
+                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div class="flex justify-between items-center text-[9px] text-slate-400 pt-1">
+                                                <span>Norma: &gt;82.2 (Sangat Tinggi), 67-82 (Tinggi), 51-66 (Sedang)</span>
+                                                <span class="font-bold text-purple-700">Total: <span x-text="form.skorServisPendek ?? 0"></span></span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- 2. SERVIS PANJANG -->
-                                    <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5">
-                                        <div class="flex justify-between items-center">
-                                            <label class="text-xs font-bold text-slate-800">2. Servis Panjang (Long Serve)</label>
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaServisPanjang(form.skorServisPanjang))">
-                                                <span x-text="calculateNormaServisPanjang(form.skorServisPanjang)"></span>
-                                            </span>
+                                    <!-- 2. SERVIS PANJANG (LONG SERVE) -->
+                                    <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200 space-y-2.5">
+                                        <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleTechniqueExpand('sj')">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-extrabold text-[11px] shadow-sm">2</span>
+                                                <div>
+                                                    <h4 class="text-xs font-extrabold text-slate-900">Servis Panjang (Long Serve)</h4>
+                                                    <p class="text-[10px] text-slate-500">
+                                                        Akumulasi: <strong class="text-indigo-700 font-extrabold text-xs" x-text="form.skorServisPanjang ?? 0"></strong><span class="text-slate-400">/100</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaServisPanjang(form.skorServisPanjang))">
+                                                    <span x-text="calculateNormaServisPanjang(form.skorServisPanjang)"></span>
+                                                </span>
+                                                <i class="fa-solid text-xs text-slate-400 transition-transform duration-200" :class="expandedTechniques.sj ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="number" min="0" max="100" x-model.number="form.skorServisPanjang" placeholder="Skor"
-                                                   class="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs text-slate-900 font-bold text-center focus:outline-none focus:border-purple-600">
-                                            <p class="text-[9px] text-slate-500">Norma: &gt;60 (Sangat Tinggi), 47-60 (Tinggi), 34-46 (Sedang)</p>
+
+                                        <!-- Grid 20 Percobaan SJ -->
+                                        <div x-show="expandedTechniques.sj" x-transition class="space-y-2 pt-2 border-t border-slate-200/70">
+                                            <div class="flex justify-between items-center text-[10px]">
+                                                <span class="text-slate-500 font-medium">Nilai per kesempatan (0 - 5):</span>
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="text-[9px] text-slate-400 mr-1">Cepat:</span>
+                                                    <button type="button" @click="quickFillTrials('sj', 5)" class="px-1.5 py-0.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded text-[9px] transition-all">5</button>
+                                                    <button type="button" @click="quickFillTrials('sj', 4)" class="px-1.5 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded text-[9px] transition-all">4</button>
+                                                    <button type="button" @click="quickFillTrials('sj', 3)" class="px-1.5 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded text-[9px] transition-all">3</button>
+                                                    <button type="button" @click="resetTrials('sj')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded text-[9px] transition-all">Reset</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                                <template x-for="i in 20" :key="'sj-'+i">
+                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-200 transition-all">
+                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5"
+                                                               :id="'input-sj-'+(i-1)"
+                                                               x-model.number="form.trialsServisPanjang[i-1]"
+                                                               @input="onTrialInput('sj', i-1, $event)"
+                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div class="flex justify-between items-center text-[9px] text-slate-400 pt-1">
+                                                <span>Norma: &gt;60 (Sangat Tinggi), 47-60 (Tinggi), 34-46 (Sedang)</span>
+                                                <span class="font-bold text-indigo-700">Total: <span x-text="form.skorServisPanjang ?? 0"></span></span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- 3. PUKULAN LOB -->
-                                    <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5">
-                                        <div class="flex justify-between items-center">
-                                            <label class="text-xs font-bold text-slate-800">3. Pukulan Lob (High Clear)</label>
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaLob(form.skorLob))">
-                                                <span x-text="calculateNormaLob(form.skorLob)"></span>
-                                            </span>
+                                    <!-- 3. PUKULAN LOB (HIGH CLEAR) -->
+                                    <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200 space-y-2.5">
+                                        <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleTechniqueExpand('lob')">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-extrabold text-[11px] shadow-sm">3</span>
+                                                <div>
+                                                    <h4 class="text-xs font-extrabold text-slate-900">Pukulan Lob (High Clear)</h4>
+                                                    <p class="text-[10px] text-slate-500">
+                                                        Akumulasi: <strong class="text-blue-700 font-extrabold text-xs" x-text="form.skorLob ?? 0"></strong><span class="text-slate-400">/100</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaLob(form.skorLob))">
+                                                    <span x-text="calculateNormaLob(form.skorLob)"></span>
+                                                </span>
+                                                <i class="fa-solid text-xs text-slate-400 transition-transform duration-200" :class="expandedTechniques.lob ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="number" min="0" max="100" x-model.number="form.skorLob" placeholder="Skor"
-                                                   class="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs text-slate-900 font-bold text-center focus:outline-none focus:border-purple-600">
-                                            <p class="text-[9px] text-slate-500">Norma: &gt;91 (Sangat Tinggi), 80-90 (Tinggi), 70-79 (Sedang)</p>
+
+                                        <!-- Grid 20 Percobaan Lob -->
+                                        <div x-show="expandedTechniques.lob" x-transition class="space-y-2 pt-2 border-t border-slate-200/70">
+                                            <div class="flex justify-between items-center text-[10px]">
+                                                <span class="text-slate-500 font-medium">Nilai per kesempatan (0 - 5):</span>
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="text-[9px] text-slate-400 mr-1">Cepat:</span>
+                                                    <button type="button" @click="quickFillTrials('lob', 5)" class="px-1.5 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded text-[9px] transition-all">5</button>
+                                                    <button type="button" @click="quickFillTrials('lob', 4)" class="px-1.5 py-0.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold rounded text-[9px] transition-all">4</button>
+                                                    <button type="button" @click="quickFillTrials('lob', 3)" class="px-1.5 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded text-[9px] transition-all">3</button>
+                                                    <button type="button" @click="resetTrials('lob')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded text-[9px] transition-all">Reset</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                                <template x-for="i in 20" :key="'lob-'+i">
+                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5"
+                                                               :id="'input-lob-'+(i-1)"
+                                                               x-model.number="form.trialsLob[i-1]"
+                                                               @input="onTrialInput('lob', i-1, $event)"
+                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div class="flex justify-between items-center text-[9px] text-slate-400 pt-1">
+                                                <span>Norma: &gt;91 (Sangat Tinggi), 80-90 (Tinggi), 70-79 (Sedang)</span>
+                                                <span class="font-bold text-blue-700">Total: <span x-text="form.skorLob ?? 0"></span></span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- 4. PUKULAN SMASH -->
-                                    <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-200 space-y-1.5">
-                                        <div class="flex justify-between items-center">
-                                            <label class="text-xs font-bold text-slate-800">4. Pukulan Smash (Smash Test)</label>
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaSmash(form.skorSmash))">
-                                                <span x-text="calculateNormaSmash(form.skorSmash)"></span>
-                                            </span>
+                                    <!-- 4. PUKULAN SMASH (SMASH TEST) -->
+                                    <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200 space-y-2.5">
+                                        <div class="flex justify-between items-center cursor-pointer select-none" @click="toggleTechniqueExpand('smash')">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center font-extrabold text-[11px] shadow-sm">4</span>
+                                                <div>
+                                                    <h4 class="text-xs font-extrabold text-slate-900">Pukulan Smash (Smash Test)</h4>
+                                                    <p class="text-[10px] text-slate-500">
+                                                        Akumulasi: <strong class="text-rose-700 font-extrabold text-xs" x-text="form.skorSmash ?? 0"></strong><span class="text-slate-400">/100</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(calculateNormaSmash(form.skorSmash))">
+                                                    <span x-text="calculateNormaSmash(form.skorSmash)"></span>
+                                                </span>
+                                                <i class="fa-solid text-xs text-slate-400 transition-transform duration-200" :class="expandedTechniques.smash ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center space-x-2">
-                                            <input type="number" min="0" max="100" x-model.number="form.skorSmash" placeholder="Skor"
-                                                   class="w-24 bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs text-slate-900 font-bold text-center focus:outline-none focus:border-purple-600">
-                                            <p class="text-[9px] text-slate-500">Norma: &gt;33 (Sangat Tinggi), 25-32 (Tinggi), 17-24 (Sedang)</p>
+
+                                        <!-- Grid 20 Percobaan Smash -->
+                                        <div x-show="expandedTechniques.smash" x-transition class="space-y-2 pt-2 border-t border-slate-200/70">
+                                            <div class="flex justify-between items-center text-[10px]">
+                                                <span class="text-slate-500 font-medium">Nilai per kesempatan (0 - 5):</span>
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="text-[9px] text-slate-400 mr-1">Cepat:</span>
+                                                    <button type="button" @click="quickFillTrials('smash', 5)" class="px-1.5 py-0.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded text-[9px] transition-all">5</button>
+                                                    <button type="button" @click="quickFillTrials('smash', 4)" class="px-1.5 py-0.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold rounded text-[9px] transition-all">4</button>
+                                                    <button type="button" @click="quickFillTrials('smash', 2)" class="px-1.5 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded text-[9px] transition-all">2</button>
+                                                    <button type="button" @click="resetTrials('smash')" class="px-1.5 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded text-[9px] transition-all">Reset</button>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                                <template x-for="i in 20" :key="'smash-'+i">
+                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-rose-600 focus-within:ring-2 focus-within:ring-rose-200 transition-all">
+                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5"
+                                                               :id="'input-smash-'+(i-1)"
+                                                               x-model.number="form.trialsSmash[i-1]"
+                                                               @input="onTrialInput('smash', i-1, $event)"
+                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div class="flex justify-between items-center text-[9px] text-slate-400 pt-1">
+                                                <span>Norma: &gt;33 (Sangat Tinggi), 25-32 (Tinggi), 17-24 (Sedang)</span>
+                                                <span class="font-bold text-rose-700">Total: <span x-text="form.skorSmash ?? 0"></span></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1225,25 +1408,77 @@
                             </tr>
                         </thead>
                         <tbody class="text-slate-800">
+                            <!-- 1. Servis Pendek -->
                             <tr>
-                                <td class="p-2 border border-slate-200">1. Servis Pendek</td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.skorServisPendek"></td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.normaServisPendek"></td>
+                                <td class="p-2.5 border border-slate-200">
+                                    <div class="font-extrabold text-slate-900">1. Servis Pendek</div>
+                                    <template x-if="selectedRecord.trialsServisPendek && selectedRecord.trialsServisPendek.length > 0">
+                                        <div class="mt-1.5 flex flex-wrap gap-1 items-center">
+                                            <span class="text-[9px] text-slate-400 font-semibold mr-0.5">20 Coba:</span>
+                                            <template x-for="(tr, tri) in selectedRecord.trialsServisPendek" :key="'spt-'+tri">
+                                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-md bg-purple-50 text-purple-800 text-[8px] font-extrabold border border-purple-200 shadow-2xs" :title="'Kesempatan #' + (tri+1) + ': ' + tr" x-text="tr"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="p-2 border border-slate-200 text-center font-black text-purple-900 text-sm align-middle" x-text="selectedRecord.skorServisPendek"></td>
+                                <td class="p-2 border border-slate-200 text-center align-middle">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(selectedRecord.normaServisPendek)" x-text="selectedRecord.normaServisPendek"></span>
+                                </td>
                             </tr>
+                            <!-- 2. Servis Panjang -->
                             <tr>
-                                <td class="p-2 border border-slate-200">2. Servis Panjang</td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.skorServisPanjang"></td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.normaServisPanjang"></td>
+                                <td class="p-2.5 border border-slate-200">
+                                    <div class="font-extrabold text-slate-900">2. Servis Panjang</div>
+                                    <template x-if="selectedRecord.trialsServisPanjang && selectedRecord.trialsServisPanjang.length > 0">
+                                        <div class="mt-1.5 flex flex-wrap gap-1 items-center">
+                                            <span class="text-[9px] text-slate-400 font-semibold mr-0.5">20 Coba:</span>
+                                            <template x-for="(tr, tri) in selectedRecord.trialsServisPanjang" :key="'sjt-'+tri">
+                                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-md bg-indigo-50 text-indigo-800 text-[8px] font-extrabold border border-indigo-200 shadow-2xs" :title="'Kesempatan #' + (tri+1) + ': ' + tr" x-text="tr"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="p-2 border border-slate-200 text-center font-black text-indigo-900 text-sm align-middle" x-text="selectedRecord.skorServisPanjang"></td>
+                                <td class="p-2 border border-slate-200 text-center align-middle">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(selectedRecord.normaServisPanjang)" x-text="selectedRecord.normaServisPanjang"></span>
+                                </td>
                             </tr>
+                            <!-- 3. Pukulan Lob -->
                             <tr>
-                                <td class="p-2 border border-slate-200">3. Pukulan Lob</td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.skorLob"></td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.normaLob"></td>
+                                <td class="p-2.5 border border-slate-200">
+                                    <div class="font-extrabold text-slate-900">3. Pukulan Lob</div>
+                                    <template x-if="selectedRecord.trialsLob && selectedRecord.trialsLob.length > 0">
+                                        <div class="mt-1.5 flex flex-wrap gap-1 items-center">
+                                            <span class="text-[9px] text-slate-400 font-semibold mr-0.5">20 Coba:</span>
+                                            <template x-for="(tr, tri) in selectedRecord.trialsLob" :key="'lobt-'+tri">
+                                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-md bg-blue-50 text-blue-800 text-[8px] font-extrabold border border-blue-200 shadow-2xs" :title="'Kesempatan #' + (tri+1) + ': ' + tr" x-text="tr"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="p-2 border border-slate-200 text-center font-black text-blue-900 text-sm align-middle" x-text="selectedRecord.skorLob"></td>
+                                <td class="p-2 border border-slate-200 text-center align-middle">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(selectedRecord.normaLob)" x-text="selectedRecord.normaLob"></span>
+                                </td>
                             </tr>
+                            <!-- 4. Pukulan Smash -->
                             <tr>
-                                <td class="p-2 border border-slate-200">4. Pukulan Smash</td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.skorSmash"></td>
-                                <td class="p-2 border border-slate-200 text-center font-bold" x-text="selectedRecord.normaSmash"></td>
+                                <td class="p-2.5 border border-slate-200">
+                                    <div class="font-extrabold text-slate-900">4. Pukulan Smash</div>
+                                    <template x-if="selectedRecord.trialsSmash && selectedRecord.trialsSmash.length > 0">
+                                        <div class="mt-1.5 flex flex-wrap gap-1 items-center">
+                                            <span class="text-[9px] text-slate-400 font-semibold mr-0.5">20 Coba:</span>
+                                            <template x-for="(tr, tri) in selectedRecord.trialsSmash" :key="'smasht-'+tri">
+                                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-md bg-rose-50 text-rose-800 text-[8px] font-extrabold border border-rose-200 shadow-2xs" :title="'Kesempatan #' + (tri+1) + ': ' + tr" x-text="tr"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="p-2 border border-slate-200 text-center font-black text-rose-900 text-sm align-middle" x-text="selectedRecord.skorSmash"></td>
+                                <td class="p-2 border border-slate-200 text-center align-middle">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold" :class="getCategoryBadgeClass(selectedRecord.normaSmash)" x-text="selectedRecord.normaSmash"></span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -1466,7 +1701,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT APP LOGIC (ALPINE.JS CONTROLLER) -->
+    <!-- JAVASCRIPT APP LOGIC (ALPINE.JS CONTROLLER WITH MYSQL BACKEND SYNC) -->
     <script>
         function sabawaApp() {
             return {
@@ -1485,6 +1720,20 @@
                 activeVideo: null,
                 activeVideoTitle: '',
                 editingIndex: null,
+
+                // Database & Multi-Device Sync States
+                dbConnected: true,
+                dbDriver: '{{ config('database.default', 'mysql') }}',
+                isSyncing: false,
+                isSaving: false,
+
+                // Accordion Expand States for 20-attempts grids
+                expandedTechniques: {
+                    sp: true,
+                    sj: true,
+                    lob: true,
+                    smash: true
+                },
 
                 // Modal Toggle States
                 showMateriModal: false,
@@ -1506,75 +1755,21 @@
                     heroDescription: "Aplikasi SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) dirancang khusus untuk mempermudah penilaian dan pengolahan skor tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah."
                 },
 
-                // Researchers / Tim Peneliti State
-                researchers: [
-                    { id: 1, name: "Silvi Aryanti, M.Pd.", role: "Ketua Peneliti • NIDN 0021079101", photo: "images/Picture1.png", isLeader: true },
-                    { id: 2, name: "Destriana, M.Pd.", role: "Anggota 1 • NIDN 0001128905", photo: "images/Picture2.png", isLeader: false },
-                    { id: 3, name: "Fitri Agung Nanda, M.Pd.", role: "Anggota 2 • NIDN 0016039408", photo: "images/Picture3.png", isLeader: false },
-                    { id: 4, name: "Soleh Solahuddin, M.Pd.", role: "Anggota 3 • NIDK 8898323419", photo: "images/Picture4.png", isLeader: false }
-                ],
+                // Researchers State
+                researchers: [],
 
-                // Materis List State
-                materis: [
-                    {
-                        id: 1,
-                        judul: "Overview Instrumen Penilaian Bulutangkis",
-                        kategori: "Umum",
-                        photo: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
-                        deskripsi: "Instrumen Penilaian Bulutangkis ini dikembangkan oleh Silvi Aryanti, M.Pd. dan tim mengacu pada metode penelitian R&D (Sugiyono, 2009: 148 & Suharsimi Arikunto, 2013: 193). Mengukur 4 keterampilan utama: Servis Pendek, Servis Panjang, Pukulan Lob, dan Pukulan Smash.",
-                        petunjuk: "Setiap teste melakukan 20 kali percobaan pada masing-masing item tes. Penguji mencatat skor per percobaan pada form."
-                    },
-                    {
-                        id: 2,
-                        judul: "1. Servis Pendek (Short Serve Test)",
-                        kategori: "Servis Pendek",
-                        photo: "https://images.unsplash.com/photo-1521537634581-0ddea2efe2b6?auto=format&fit=crop&w=800&q=80",
-                        deskripsi: "Tes Servis Pendek (Manurung 2018) bertujuan mengukur akurasi dan ketepatan servis backhand/forehand tipis di atas net menuju area sasaran bernilai 5, 4, 3, 2, dan 1.",
-                        petunjuk: "Subjek berdiri di petak servis dan melakukan 20 kali servis pendek berurutan. Bola yang menyangkut di net mendapat skor 0."
-                    },
-                    {
-                        id: 3,
-                        judul: "2. Servis Panjang (Long Serve Test)",
-                        kategori: "Servis Panjang",
-                        photo: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80",
-                        deskripsi: "Tes Servis Panjang (Bayu Tri Kurniawan 2018:54) mengukur kemampuan melambungkan shuttlecock jauh dan tinggi menuju garis belakang batas lapangan lawan.",
-                        petunjuk: "Subjek diberi kesempatan 20 kali melakukan servis melambung tinggi. Nilai dicatat sesuai angka pada target garis belakang."
-                    },
-                    {
-                        id: 4,
-                        judul: "3. Tes Pukulan Lob (High Clear Test)",
-                        kategori: "Tes Lob",
-                        photo: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
-                        deskripsi: "Pukulan Lob mengukur kemampuan mengembalikan shuttlecock melambung tinggi melampaui tali batas setinggi 155 cm (8 kaki) menuju lapangan belakang lawan.",
-                        petunjuk: "Shuttlecock diumpan oleh penguji, subjek melakukan pukulan lob 20 kali. Bola yang melewati bawah tali dianggap tidak sah (skor 0)."
-                    },
-                    {
-                        id: 5,
-                        judul: "4. Tes Pukulan Smash (Smash Test)",
-                        kategori: "Tes Smash",
-                        photo: "https://images.unsplash.com/photo-1613918108466-292b78a8ef95?auto=format&fit=crop&w=800&q=80",
-                        deskripsi: "Tes Smash mengukur kecepatan, ketepatan, dan menukiknya pukulan smash forehand ke area sasaran bernilai pada lapangan lawan.",
-                        petunjuk: "Subjek menerima 20 umpan lob tinggi dari penguji dan wajib melakukan smash keras menukik ke area target lawan."
-                    }
-                ],
+                // Materis State
+                materis: [],
 
-                // Videos List State
-                videos: [
-                    { id: 1, judul: "Teknik Servis Pendek Backhand", kategori: "Servis Pendek", url: "https://www.youtube.com/embed/5D2Y8JtK11A", deskripsi: "Panduan rincian gerakan dan posisi pegangan raket untuk servis pendek." },
-                    { id: 2, judul: "Teknik Servis Panjang Forehand", kategori: "Servis Panjang", url: "https://www.youtube.com/embed/sLd2vHnQO9k", deskripsi: "Panduan servis melambung tinggi jauh ke belakang lapangan lawan." }
-                ],
+                // Videos State
+                videos: [],
 
-                // FAQs List State
-                faqs: [
-                    { id: 1, q: "Apa itu aplikasi SA'BAWA?", a: "SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp) adalah aplikasi web yang dikembangkan oleh tim Silvi Aryanti, M.Pd. untuk mengukur dan mengonversi hasil tes 4 teknik dasar bulutangkis secara otomatis berdasarkan standar norma ilmiah." },
-                    { id: 2, q: "Siapa saja tim peneliti pengembang instrumen ini?", a: "Ketua: Silvi Aryanti, M.Pd. (NIDN 0021079101), Anggota: 1. Destriana, M.Pd., 2. Fitri Agung Nanda, M.Pd., 3. Soleh Solahuddin, M.Pd." },
-                    { id: 3, q: "Berapa kali kesempatan servis/pukulan yang diberikan?", a: "Setiap teste mendapatkan 20 kali kesempatan percobaan untuk masing-masing tes (Servis Pendek, Servis Panjang, Lob, dan Smash)." },
-                    { id: 4, q: "Bagaimana cara penilaian Servis Pendek & Panjang?", a: "Shuttlecock diarahkan ke zona sasaran bernilai 5, 4, 3, 2, dan 1. Skor dikonversi ke norma nilai otomatis." },
-                    { id: 5, q: "Bagaimana cara login Admin?", a: "Silakan login dengan akun admin." }
-                ],
+                // FAQs State
+                faqs: [],
 
-                // Forms CRUD Objects
+                // Form Object with 20 individual trial attempts per technique
                 form: {
+                    id: null,
                     nama: '',
                     nim: '',
                     gender: 'L',
@@ -1582,16 +1777,20 @@
                     sekolah: '',
                     tanggal: new Date().toISOString().split('T')[0],
                     penguji: 'Silvi Aryanti, M.Pd.',
-                    skorServisPendek: null,
-                    skorServisPanjang: null,
-                    skorLob: null,
-                    skorSmash: null
+                    trialsServisPendek: Array(20).fill(0),
+                    skorServisPendek: 0,
+                    trialsServisPanjang: Array(20).fill(0),
+                    skorServisPanjang: 0,
+                    trialsLob: Array(20).fill(0),
+                    skorLob: 0,
+                    trialsSmash: Array(20).fill(0),
+                    skorSmash: 0
                 },
 
-                materiForm: { id: null, judul: '', kategori: '', photo: '', deskripsi: '', petunjuk: '' },
-                videoForm: { id: null, judul: '', kategori: '', url: '', deskripsi: '' },
+                materiForm: { id: null, judul: '', kategori: 'Servis Pendek', photo: '', deskripsi: '', petunjuk: '' },
+                videoForm: { id: null, judul: '', kategori: 'Teknik Dasar', url: '', deskripsi: '' },
                 faqForm: { id: null, q: '', a: '' },
-                researcherForm: { id: null, name: '', role: '', photo: '', isLeader: false },
+                researcherForm: { id: null, name: '', role: '', photo: '/images/logo1.png', isLeader: false },
 
                 records: [],
 
@@ -1606,122 +1805,119 @@
                     this.currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                 },
 
-                loadAllData() {
-                    // Load Records
-                    const storedRecords = localStorage.getItem('sabawa_records');
-                    if (storedRecords) {
-                        this.records = JSON.parse(storedRecords);
-                    } else {
-                        this.seedSampleData();
+                // TOGGLE & TRIAL INPUT HELPERS
+                toggleTechniqueExpand(tech) {
+                    this.expandedTechniques[tech] = !this.expandedTechniques[tech];
+                },
+
+                onTrialInput(tech, index, event) {
+                    let val = parseInt(event.target.value);
+                    if (isNaN(val) || val < 0) val = 0;
+                    if (val > 5) val = 5;
+
+                    const arrayKey = tech === 'sp' ? 'trialsServisPendek' : (tech === 'sj' ? 'trialsServisPanjang' : (tech === 'lob' ? 'trialsLob' : 'trialsSmash'));
+                    const scoreKey = tech === 'sp' ? 'skorServisPendek' : (tech === 'sj' ? 'skorServisPanjang' : (tech === 'lob' ? 'skorLob' : 'skorSmash'));
+
+                    if (!Array.isArray(this.form[arrayKey])) {
+                        this.form[arrayKey] = Array(20).fill(0);
                     }
 
-                    // Load Settings
-                    const storedSettings = localStorage.getItem('sabawa_settings');
-                    if (storedSettings) this.appSettings = JSON.parse(storedSettings);
+                    this.form[arrayKey][index] = val;
+                    this.form[scoreKey] = this.form[arrayKey].reduce((sum, item) => sum + (parseInt(item) || 0), 0);
 
-                    // Load Researchers
-                    const storedResearchers = localStorage.getItem('sabawa_researchers');
-                    if (storedResearchers) this.researchers = JSON.parse(storedResearchers);
-
-                    // Load Materis
-                    const storedMateris = localStorage.getItem('sabawa_materis');
-                    if (storedMateris) this.materis = JSON.parse(storedMateris);
-
-                    // Load Videos
-                    const storedVideos = localStorage.getItem('sabawa_videos');
-                    if (storedVideos) this.videos = JSON.parse(storedVideos);
-
-                    // Load FAQs
-                    const storedFaqs = localStorage.getItem('sabawa_faqs');
-                    if (storedFaqs) this.faqs = JSON.parse(storedFaqs);
-
-                    // Load Schools
-                    const storedSchools = localStorage.getItem('sabawa_schools');
-                    if (storedSchools) {
-                        this.schools = JSON.parse(storedSchools);
-                    } else {
-                        this.schools = [
-                            { id: 1, nama: 'SMP 4' },
-                            { id: 2, nama: 'SMP 5' }
-                        ];
-                        localStorage.setItem('sabawa_schools', JSON.stringify(this.schools));
-                    }
-                },
-
-                saveRecordsToStorage() {
-                    localStorage.setItem('sabawa_records', JSON.stringify(this.records));
-                },
-
-                saveSettingsToStorage() {
-                    localStorage.setItem('sabawa_settings', JSON.stringify(this.appSettings));
-                    localStorage.setItem('sabawa_researchers', JSON.stringify(this.researchers));
-                    localStorage.setItem('sabawa_materis', JSON.stringify(this.materis));
-                    localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
-                    localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
-                    localStorage.setItem('sabawa_schools', JSON.stringify(this.schools));
-                },
-
-                seedSampleData() {
-                    this.records = [
-                        {
-                            id: 1,
-                            nama: 'Ahmad Rizky Pratama',
-                            nim: '06121001001',
-                            jenisKelamin: 'L',
-                            kelas: 'Palembang A 2024',
-                            sekolah: 'SMP 4',
-                            tanggal: '2026-07-20',
-                            penguji: 'Silvi Aryanti, M.Pd.',
-                            skorServisPendek: 85,
-                            normaServisPendek: 'Sangat Tinggi',
-                            skorServisPanjang: 62,
-                            normaServisPanjang: 'Sangat Tinggi',
-                            skorLob: 92,
-                            normaLob: 'Sangat Tinggi',
-                            skorSmash: 35,
-                            normaSmash: 'Sangat Tinggi',
-                            evaluasiTotal: 'Sangat Tinggi'
-                        },
-                        {
-                            id: 2,
-                            nama: 'Siti Nurhaliza',
-                            nim: '06121001015',
-                            jenisKelamin: 'P',
-                            kelas: 'Indralaya B 2024',
-                            sekolah: 'SMP 5',
-                            tanggal: '2026-07-21',
-                            penguji: 'Silvi Aryanti, M.Pd.',
-                            skorServisPendek: 72,
-                            normaServisPendek: 'Tinggi',
-                            skorServisPanjang: 50,
-                            normaServisPanjang: 'Tinggi',
-                            skorLob: 83,
-                            normaLob: 'Tinggi',
-                            skorSmash: 28,
-                            normaSmash: 'Tinggi',
-                            evaluasiTotal: 'Tinggi'
-                        },
-                        {
-                            id: 3,
-                            nama: 'Budi Santoso',
-                            nim: '06121001024',
-                            jenisKelamin: 'L',
-                            kelas: 'Palembang A 2024',
-                            sekolah: 'SMP 4',
-                            tanggal: '2026-07-22',
-                            penguji: 'Destriana, M.Pd.',
-                            skorServisPendek: 58,
-                            normaServisPendek: 'Sedang',
-                            skorServisPanjang: 40,
-                            normaServisPanjang: 'Sedang',
-                            skorLob: 75,
-                            normaLob: 'Sedang',
-                            skorSmash: 20,
-                            normaSmash: 'Sedang',
-                            evaluasiTotal: 'Sedang'
+                    // Auto-advance to next input field if single character typed
+                    if (event.data && index < 19) {
+                        const nextId = 'input-' + tech + '-' + (index + 1);
+                        const nextEl = document.getElementById(nextId);
+                        if (nextEl) {
+                            nextEl.focus();
+                            nextEl.select();
                         }
-                    ];
-                    this.saveRecordsToStorage();
+                    }
+                },
+
+                quickFillTrials(tech, val) {
+                    const arrayKey = tech === 'sp' ? 'trialsServisPendek' : (tech === 'sj' ? 'trialsServisPanjang' : (tech === 'lob' ? 'trialsLob' : 'trialsSmash'));
+                    const scoreKey = tech === 'sp' ? 'skorServisPendek' : (tech === 'sj' ? 'skorServisPanjang' : (tech === 'lob' ? 'skorLob' : 'skorSmash'));
+
+                    this.form[arrayKey] = Array(20).fill(val);
+                    this.form[scoreKey] = val * 20;
+                },
+
+                resetTrials(tech) {
+                    this.quickFillTrials(tech, 0);
+                },
+
+                // LOAD ALL DATA (MYSQL WITH LOCAL STORAGE FALLBACK)
+                async loadAllData(manual = false) {
+                    this.isSyncing = true;
+                    try {
+                        const res = await fetch('/api/app-data', {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (!res.ok) throw new Error('Koneksi server gagal');
+                        const data = await res.json();
+
+                        if (data.records) this.records = data.records;
+                        if (data.schools) this.schools = data.schools;
+                        if (data.materis) this.materis = data.materis;
+                        if (data.videos) this.videos = data.videos;
+                        if (data.faqs) this.faqs = data.faqs;
+                        if (data.researchers) this.researchers = data.researchers;
+                        if (data.appSettings && Object.keys(data.appSettings).length > 0) {
+                            this.appSettings = { ...this.appSettings, ...data.appSettings };
+                        }
+                        if (data.dbDriver) this.dbDriver = data.dbDriver;
+
+                        this.dbConnected = true;
+                        this.saveToLocalStorageFallback();
+
+                        if (manual) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sinkronisasi Berhasil!',
+                                text: 'Data terbaru berhasil dimuat dari database ' + (this.dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + '.',
+                                confirmButtonColor: '#7e22ce',
+                                timer: 1500,
+                                customClass: { popup: 'rounded-3xl' }
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Gagal memuat dari MySQL, menggunakan cache lokal:', e);
+                        this.dbConnected = false;
+                        this.loadFromLocalStorageFallback();
+                    } finally {
+                        this.isSyncing = false;
+                    }
+                },
+
+                saveToLocalStorageFallback() {
+                    try {
+                        localStorage.setItem('sabawa_records', JSON.stringify(this.records));
+                        localStorage.setItem('sabawa_settings', JSON.stringify(this.appSettings));
+                        localStorage.setItem('sabawa_researchers', JSON.stringify(this.researchers));
+                        localStorage.setItem('sabawa_materis', JSON.stringify(this.materis));
+                        localStorage.setItem('sabawa_videos', JSON.stringify(this.videos));
+                        localStorage.setItem('sabawa_faqs', JSON.stringify(this.faqs));
+                        localStorage.setItem('sabawa_schools', JSON.stringify(this.schools));
+                    } catch (e) {}
+                },
+
+                loadFromLocalStorageFallback() {
+                    const r = localStorage.getItem('sabawa_records');
+                    if (r) this.records = JSON.parse(r);
+                    const s = localStorage.getItem('sabawa_settings');
+                    if (s) this.appSettings = JSON.parse(s);
+                    const sch = localStorage.getItem('sabawa_schools');
+                    if (sch) this.schools = JSON.parse(sch);
+                    const m = localStorage.getItem('sabawa_materis');
+                    if (m) this.materis = JSON.parse(m);
+                    const v = localStorage.getItem('sabawa_videos');
+                    if (v) this.videos = JSON.parse(v);
+                    const f = localStorage.getItem('sabawa_faqs');
+                    if (f) this.faqs = JSON.parse(f);
+                    const res = localStorage.getItem('sabawa_researchers');
+                    if (res) this.researchers = JSON.parse(res);
                 },
 
                 loginAdmin() {
@@ -1760,6 +1956,7 @@
                     });
                 },
 
+                // NORMA CALCULATION FUNCTIONS
                 calculateNormaServisPendek(score) {
                     if (score === null || score === undefined || score === '') return '-';
                     if (score > 82.2) return 'Sangat Tinggi';
@@ -1804,7 +2001,7 @@
 
                     const mapNorma = { 'Sangat Tinggi': 5, 'Tinggi': 4, 'Sedang': 3, 'Kurang': 2, 'Sangat Kurang': 1 };
                     const scores = [mapNorma[nSp] || 0, mapNorma[nSj] || 0, mapNorma[nLob] || 0, mapNorma[nSmash] || 0].filter(s => s > 0);
-                    
+
                     if (scores.length === 0) return '-';
                     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
 
@@ -1815,15 +2012,23 @@
                     return 'Sangat Kurang';
                 },
 
-                saveRecord() {
-                    const normaSp = this.calculateNormaServisPendek(this.form.skorServisPendek);
-                    const normaSj = this.calculateNormaServisPanjang(this.form.skorServisPanjang);
-                    const normaLob = this.calculateNormaLob(this.form.skorLob);
-                    const normaSmash = this.calculateNormaSmash(this.form.skorSmash);
-                    const evalTotal = this.calculateOverallCategory(this.form.skorServisPendek, this.form.skorServisPanjang, this.form.skorLob, this.form.skorSmash);
+                // RECORD CRUD (SAVE TO MYSQL)
+                async saveRecord() {
+                    this.isSaving = true;
 
-                    const recordData = {
-                        id: this.editingIndex !== null ? this.records[this.editingIndex].id : Date.now(),
+                    // Compute accumulated totals from the 20-attempts arrays
+                    const spSum = (this.form.trialsServisPendek || []).reduce((a, b) => (a || 0) + (parseInt(b) || 0), 0);
+                    const sjSum = (this.form.trialsServisPanjang || []).reduce((a, b) => (a || 0) + (parseInt(b) || 0), 0);
+                    const lobSum = (this.form.trialsLob || []).reduce((a, b) => (a || 0) + (parseInt(b) || 0), 0);
+                    const smashSum = (this.form.trialsSmash || []).reduce((a, b) => (a || 0) + (parseInt(b) || 0), 0);
+
+                    this.form.skorServisPendek = spSum;
+                    this.form.skorServisPanjang = sjSum;
+                    this.form.skorLob = lobSum;
+                    this.form.skorSmash = smashSum;
+
+                    const payload = {
+                        id: this.form.id,
                         nama: this.form.nama,
                         nim: this.form.nim,
                         jenisKelamin: this.form.gender,
@@ -1831,71 +2036,120 @@
                         sekolah: this.form.sekolah,
                         tanggal: this.form.tanggal,
                         penguji: this.form.penguji,
-                        skorServisPendek: this.form.skorServisPendek,
-                        normaServisPendek: normaSp,
-                        skorServisPanjang: this.form.skorServisPanjang,
-                        normaServisPanjang: normaSj,
-                        skorLob: this.form.skorLob,
-                        normaLob: normaLob,
-                        skorSmash: this.form.skorSmash,
-                        normaSmash: normaSmash,
-                        evaluasiTotal: evalTotal
+                        trialsServisPendek: this.form.trialsServisPendek,
+                        skorServisPendek: spSum,
+                        trialsServisPanjang: this.form.trialsServisPanjang,
+                        skorServisPanjang: sjSum,
+                        trialsLob: this.form.trialsLob,
+                        skorLob: lobSum,
+                        trialsSmash: this.form.trialsSmash,
+                        skorSmash: smashSum
                     };
 
-                    if (this.editingIndex !== null) {
-                        this.records[this.editingIndex] = recordData;
-                        this.editingIndex = null;
-                    } else {
-                        this.records.unshift(recordData);
+                    try {
+                        const res = await fetch('/api/assessments', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!res.ok) throw new Error('Gagal menyimpan data ke MySQL server.');
+                        const result = await res.json();
+
+                        if (result.success && result.record) {
+                            const idx = this.records.findIndex(r => r.id === result.record.id);
+                            if (idx !== -1) {
+                                this.records[idx] = result.record;
+                            } else {
+                                this.records.unshift(result.record);
+                            }
+                        }
+
+                        this.saveToLocalStorageFallback();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Simpan ke MySQL!',
+                            text: 'Data tes 20x percobaan telah tersimpan di database.',
+                            confirmButtonColor: '#7e22ce',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            customClass: { popup: 'rounded-3xl' }
+                        });
+
+                        this.resetForm();
+                        this.activeTab = 'data';
+                    } catch (err) {
+                        console.error('Error simpan data:', err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: err.message || 'Gagal menyimpan data.',
+                            confirmButtonColor: '#7e22ce'
+                        });
+                    } finally {
+                        this.isSaving = false;
                     }
+                },
 
-                    this.saveRecordsToStorage();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil Simpan!',
-                        text: 'Data penilaian berhasil disimpan.',
-                        confirmButtonColor: '#7e22ce',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        customClass: { popup: 'rounded-3xl' }
-                    });
-
-                    this.form.nama = '';
-                    this.form.nim = '';
-                    this.form.sekolah = '';
-                    this.form.skorServisPendek = null;
-                    this.form.skorServisPanjang = null;
-                    this.form.skorLob = null;
-                    this.form.skorSmash = null;
-
-                    this.activeTab = 'data';
+                resetForm() {
+                    this.form = {
+                        id: null,
+                        nama: '',
+                        nim: '',
+                        gender: 'L',
+                        kelas: 'Palembang A 2024',
+                        sekolah: '',
+                        tanggal: new Date().toISOString().split('T')[0],
+                        penguji: 'Silvi Aryanti, M.Pd.',
+                        trialsServisPendek: Array(20).fill(0),
+                        skorServisPendek: 0,
+                        trialsServisPanjang: Array(20).fill(0),
+                        skorServisPanjang: 0,
+                        trialsLob: Array(20).fill(0),
+                        skorLob: 0,
+                        trialsSmash: Array(20).fill(0),
+                        skorSmash: 0
+                    };
                 },
 
                 editRecord(item) {
-                    const idx = this.records.findIndex(r => r.id === item.id);
-                    if (idx !== -1) {
-                        this.editingIndex = idx;
-                        this.form = {
-                            nama: item.nama,
-                            nim: item.nim,
-                            gender: item.jenisKelamin,
-                            kelas: item.kelas,
-                            sekolah: item.sekolah || '',
-                            tanggal: item.tanggal,
-                            penguji: item.penguji,
-                            skorServisPendek: item.skorServisPendek,
-                            skorServisPanjang: item.skorServisPanjang,
-                            skorLob: item.skorLob,
-                            skorSmash: item.skorSmash
-                        };
-                        this.activeTab = 'form';
-                    }
+                    this.form = {
+                        id: item.id,
+                        nama: item.nama,
+                        nim: item.nim,
+                        gender: item.jenisKelamin,
+                        kelas: item.kelas,
+                        sekolah: item.sekolah || '',
+                        tanggal: item.tanggal,
+                        penguji: item.penguji,
+                        trialsServisPendek: (item.trialsServisPendek && item.trialsServisPendek.length === 20)
+                            ? [...item.trialsServisPendek]
+                            : Array(20).fill(Math.round((item.skorServisPendek || 0) / 20)),
+                        skorServisPendek: item.skorServisPendek ?? 0,
+                        trialsServisPanjang: (item.trialsServisPanjang && item.trialsServisPanjang.length === 20)
+                            ? [...item.trialsServisPanjang]
+                            : Array(20).fill(Math.round((item.skorServisPanjang || 0) / 20)),
+                        skorServisPanjang: item.skorServisPanjang ?? 0,
+                        trialsLob: (item.trialsLob && item.trialsLob.length === 20)
+                            ? [...item.trialsLob]
+                            : Array(20).fill(Math.round((item.skorLob || 0) / 20)),
+                        skorLob: item.skorLob ?? 0,
+                        trialsSmash: (item.trialsSmash && item.trialsSmash.length === 20)
+                            ? [...item.trialsSmash]
+                            : Array(20).fill(Math.round((item.skorSmash || 0) / 20)),
+                        skorSmash: item.skorSmash ?? 0
+                    };
+                    this.activeTab = 'form';
                 },
 
                 deleteRecord(id) {
                     Swal.fire({
                         title: 'Apakah Anda yakin?',
-                        text: 'Data tes ini akan dihapus secara permanen!',
+                        text: 'Data tes ini akan dihapus secara permanen dari MySQL!',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
@@ -1903,19 +2157,23 @@
                         confirmButtonText: 'Ya, hapus!',
                         cancelButtonText: 'Batal',
                         customClass: { popup: 'rounded-3xl' }
-                    }).then((result) => {
+                    }).then(async (result) => {
                         if (result.isConfirmed) {
-                            this.records = this.records.filter(r => r.id !== id);
-                            this.saveRecordsToStorage();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Terhapus!',
-                                text: 'Data tes telah berhasil dihapus.',
-                                confirmButtonColor: '#7e22ce',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                customClass: { popup: 'rounded-3xl' }
-                            });
+                            try {
+                                await fetch(`/api/assessments/${id}`, { method: 'DELETE' });
+                                this.records = this.records.filter(r => r.id !== id);
+                                this.saveToLocalStorageFallback();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: 'Data tes telah berhasil dihapus dari database.',
+                                    confirmButtonColor: '#7e22ce',
+                                    timer: 1500,
+                                    customClass: { popup: 'rounded-3xl' }
+                                });
+                            } catch (e) {
+                                Swal.fire({ icon: 'error', title: 'Gagal Hapus', text: e.message });
+                            }
                         }
                     });
                 },
@@ -1929,28 +2187,38 @@
                     this.materiForm = { ...item };
                     this.showMateriModal = true;
                 },
-                saveMateri() {
-                    if (this.materiForm.id) {
-                        const idx = this.materis.findIndex(m => m.id === this.materiForm.id);
-                        if (idx !== -1) this.materis[idx] = { ...this.materiForm };
-                    } else {
-                        this.materis.push({ ...this.materiForm, id: Date.now() });
+                async saveMateri() {
+                    try {
+                        const res = await fetch('/api/materis', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(this.materiForm)
+                        });
+                        const data = await res.json();
+                        if (data.materi) {
+                            const idx = this.materis.findIndex(m => m.id === data.materi.id);
+                            if (idx !== -1) this.materis[idx] = data.materi;
+                            else this.materis.push(data.materi);
+                        }
+                        this.saveToLocalStorageFallback();
+                        this.showMateriModal = false;
+                        Swal.fire({ icon: 'success', title: 'Materi Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
-                    this.saveSettingsToStorage();
-                    this.showMateriModal = false;
-                    Swal.fire({ icon: 'success', title: 'Materi Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                 },
-                deleteMateri(id) {
+                async deleteMateri(id) {
                     Swal.fire({
                         title: 'Hapus Materi ini?',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
                         confirmButtonText: 'Ya, hapus'
-                    }).then(res => {
+                    }).then(async (res) => {
                         if (res.isConfirmed) {
+                            await fetch(`/api/materis/${id}`, { method: 'DELETE' });
                             this.materis = this.materis.filter(m => m.id !== id);
-                            this.saveSettingsToStorage();
+                            this.saveToLocalStorageFallback();
                             Swal.fire({ icon: 'success', title: 'Materi Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
                         }
                     });
@@ -1965,28 +2233,38 @@
                     this.videoForm = { ...item };
                     this.showVideoModal = true;
                 },
-                saveVideo() {
-                    if (this.videoForm.id) {
-                        const idx = this.videos.findIndex(v => v.id === this.videoForm.id);
-                        if (idx !== -1) this.videos[idx] = { ...this.videoForm };
-                    } else {
-                        this.videos.push({ ...this.videoForm, id: Date.now() });
+                async saveVideo() {
+                    try {
+                        const res = await fetch('/api/videos', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(this.videoForm)
+                        });
+                        const data = await res.json();
+                        if (data.video) {
+                            const idx = this.videos.findIndex(v => v.id === data.video.id);
+                            if (idx !== -1) this.videos[idx] = data.video;
+                            else this.videos.push(data.video);
+                        }
+                        this.saveToLocalStorageFallback();
+                        this.showVideoModal = false;
+                        Swal.fire({ icon: 'success', title: 'Video Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
-                    this.saveSettingsToStorage();
-                    this.showVideoModal = false;
-                    Swal.fire({ icon: 'success', title: 'Video Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                 },
-                deleteVideo(id) {
+                async deleteVideo(id) {
                     Swal.fire({
                         title: 'Hapus Video ini?',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
                         confirmButtonText: 'Ya, hapus'
-                    }).then(res => {
+                    }).then(async (res) => {
                         if (res.isConfirmed) {
+                            await fetch(`/api/videos/${id}`, { method: 'DELETE' });
                             this.videos = this.videos.filter(v => v.id !== id);
-                            this.saveSettingsToStorage();
+                            this.saveToLocalStorageFallback();
                             Swal.fire({ icon: 'success', title: 'Video Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
                         }
                     });
@@ -2001,28 +2279,38 @@
                     this.faqForm = { ...item };
                     this.showFaqModal = true;
                 },
-                saveFaq() {
-                    if (this.faqForm.id) {
-                        const idx = this.faqs.findIndex(f => f.id === this.faqForm.id);
-                        if (idx !== -1) this.faqs[idx] = { ...this.faqForm };
-                    } else {
-                        this.faqs.push({ ...this.faqForm, id: Date.now() });
+                async saveFaq() {
+                    try {
+                        const res = await fetch('/api/faqs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(this.faqForm)
+                        });
+                        const data = await res.json();
+                        if (data.faq) {
+                            const idx = this.faqs.findIndex(f => f.id === data.faq.id);
+                            if (idx !== -1) this.faqs[idx] = data.faq;
+                            else this.faqs.push(data.faq);
+                        }
+                        this.saveToLocalStorageFallback();
+                        this.showFaqModal = false;
+                        Swal.fire({ icon: 'success', title: 'FAQ Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
-                    this.saveSettingsToStorage();
-                    this.showFaqModal = false;
-                    Swal.fire({ icon: 'success', title: 'FAQ Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                 },
-                deleteFaq(id) {
+                async deleteFaq(id) {
                     Swal.fire({
                         title: 'Hapus FAQ ini?',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
                         confirmButtonText: 'Ya, hapus'
-                    }).then(res => {
+                    }).then(async (res) => {
                         if (res.isConfirmed) {
+                            await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
                             this.faqs = this.faqs.filter(f => f.id !== id);
-                            this.saveSettingsToStorage();
+                            this.saveToLocalStorageFallback();
                             Swal.fire({ icon: 'success', title: 'FAQ Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
                         }
                     });
@@ -2030,70 +2318,84 @@
 
                 // CRUD RESEARCHERS
                 openAddResearcherModal() {
-                    this.researcherForm = { id: null, name: '', role: '', photo: 'images/Picture1.png', isLeader: false };
+                    this.researcherForm = { id: null, name: '', role: '', photo: '/images/logo1.png', isLeader: false };
                     this.showResearcherModal = true;
                 },
                 openEditResearcherModal(person) {
                     this.researcherForm = { ...person };
                     this.showResearcherModal = true;
                 },
-                saveResearcher() {
-                    if (this.researcherForm.id) {
-                        const idx = this.researchers.findIndex(r => r.id === this.researcherForm.id);
-                        if (idx !== -1) this.researchers[idx] = { ...this.researcherForm };
-                    } else {
-                        this.researchers.push({ ...this.researcherForm, id: Date.now() });
+                async saveResearcher() {
+                    try {
+                        const res = await fetch('/api/researchers', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(this.researcherForm)
+                        });
+                        const data = await res.json();
+                        if (data.researcher) {
+                            const idx = this.researchers.findIndex(r => r.id === data.researcher.id);
+                            if (idx !== -1) this.researchers[idx] = data.researcher;
+                            else this.researchers.push(data.researcher);
+                        }
+                        this.saveToLocalStorageFallback();
+                        this.showResearcherModal = false;
+                        Swal.fire({ icon: 'success', title: 'Data Peneliti Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
-                    this.saveSettingsToStorage();
-                    this.showResearcherModal = false;
-                    Swal.fire({ icon: 'success', title: 'Data Peneliti Tersimpan', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                 },
-                deleteResearcher(id) {
+                async deleteResearcher(id) {
                     Swal.fire({
                         title: 'Hapus Peneliti ini?',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
                         confirmButtonText: 'Ya, hapus'
-                    }).then(res => {
+                    }).then(async (res) => {
                         if (res.isConfirmed) {
+                            await fetch(`/api/researchers/${id}`, { method: 'DELETE' });
                             this.researchers = this.researchers.filter(r => r.id !== id);
-                            this.saveSettingsToStorage();
+                            this.saveToLocalStorageFallback();
                             Swal.fire({ icon: 'success', title: 'Data Peneliti Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
                         }
                     });
                 },
 
-                // SCHOOLS CRUD
-                saveSchool() {
+                // SCHOOLS CRUD (MYSQL)
+                async saveSchool() {
                     if (!this.schoolForm.nama.trim()) return;
 
-                    const schoolData = {
-                        id: this.schoolForm.id !== null ? this.schoolForm.id : Date.now(),
-                        nama: this.schoolForm.nama.trim()
-                    };
+                    try {
+                        const res = await fetch('/api/schools', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                id: this.schoolForm.id,
+                                nama: this.schoolForm.nama.trim()
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.school) {
+                            const idx = this.schools.findIndex(s => s.id === data.school.id);
+                            if (idx !== -1) this.schools[idx] = data.school;
+                            else this.schools.push(data.school);
+                        }
 
-                    const idx = this.schoolForm.id !== null 
-                        ? this.schools.findIndex(s => s.id === this.schoolForm.id)
-                        : -1;
+                        this.saveToLocalStorageFallback();
+                        this.schoolForm.id = null;
+                        this.schoolForm.nama = '';
+                        this.showSchoolModal = false;
 
-                    if (idx !== -1) {
-                        this.schools[idx] = schoolData;
-                    } else {
-                        this.schools.push(schoolData);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Simpan Sekolah!',
+                            confirmButtonColor: '#7e22ce',
+                            timer: 1500
+                        });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal Simpan', text: e.message });
                     }
-
-                    this.saveSettingsToStorage();
-                    this.schoolForm.id = null;
-                    this.schoolForm.nama = '';
-                    this.showSchoolModal = false;
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil Simpan Sekolah!',
-                        confirmButtonColor: '#7e22ce',
-                        timer: 1500
-                    });
                 },
 
                 editSchool(school) {
@@ -2101,7 +2403,7 @@
                     this.showSchoolModal = true;
                 },
 
-                deleteSchool(id) {
+                async deleteSchool(id) {
                     Swal.fire({
                         title: 'Hapus Sekolah ini?',
                         text: 'Semua atlet yang terhubung dengan sekolah ini tidak akan terhapus, tetapi rincian sekolah mereka akan kosong.',
@@ -2109,31 +2411,46 @@
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
                         confirmButtonText: 'Ya, hapus'
-                    }).then(res => {
+                    }).then(async (res) => {
                         if (res.isConfirmed) {
+                            await fetch(`/api/schools/${id}`, { method: 'DELETE' });
                             this.schools = this.schools.filter(s => s.id !== id);
-                            this.saveSettingsToStorage();
+                            this.saveToLocalStorageFallback();
                             Swal.fire({ icon: 'success', title: 'Sekolah Terhapus', confirmButtonColor: '#7e22ce', timer: 1500 });
                         }
                     });
                 },
 
                 // APP SETTINGS
-                saveAppSettings() {
-                    this.saveSettingsToStorage();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Pengaturan Tersimpan!',
-                        text: 'Icon logo & nama aplikasi berhasil diperbarui.',
-                        confirmButtonColor: '#7e22ce',
-                        timer: 2000,
-                        customClass: { popup: 'rounded-3xl' }
-                    });
+                async saveAppSettings() {
+                    try {
+                        const res = await fetch('/api/settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(this.appSettings)
+                        });
+                        const data = await res.json();
+                        if (data.appSettings) {
+                            this.appSettings = { ...this.appSettings, ...data.appSettings };
+                        }
+                        this.saveToLocalStorageFallback();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pengaturan Tersimpan ke MySQL!',
+                            text: 'Icon logo & identitas aplikasi berhasil diperbarui.',
+                            confirmButtonColor: '#7e22ce',
+                            timer: 2000,
+                            customClass: { popup: 'rounded-3xl' }
+                        });
+                    } catch (e) {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
+                    }
                 },
 
                 get filteredRecords() {
                     return this.records.filter(r => {
-                        const matchQuery = !this.searchQuery || r.nama.toLowerCase().includes(this.searchQuery.toLowerCase()) || r.nim.includes(this.searchQuery);
+                        const matchQuery = !this.searchQuery || (r.nama && r.nama.toLowerCase().includes(this.searchQuery.toLowerCase())) || (r.nim && r.nim.includes(this.searchQuery));
                         const matchCat = !this.filterCategory || r.evaluasiTotal === this.filterCategory;
                         const matchSchool = !this.filterSchool || r.sekolah === this.filterSchool;
                         return matchQuery && matchCat && matchSchool;
@@ -2143,7 +2460,7 @@
                 getAverageScore() {
                     const items = this.filteredRecords;
                     if (items.length === 0) return '0';
-                    const sum = items.reduce((acc, r) => acc + (r.skorServisPendek || 0) + (r.skorServisPanjang || 0) + (r.skorLob || 0) + (r.skorSmash || 0), 0);
+                    const sum = items.reduce((acc, r) => acc + (parseInt(r.skorServisPendek) || 0) + (parseInt(r.skorServisPanjang) || 0) + (parseInt(r.skorLob) || 0) + (parseInt(r.skorSmash) || 0), 0);
                     return (sum / (items.length * 4)).toFixed(1);
                 },
 
@@ -2184,14 +2501,19 @@
                         });
                         return;
                     }
-                    let csv = 'Nama,NIM,Jenis Kelamin,Kelas,Sekolah,Tanggal,Servis Pendek,Norma SP,Servis Panjang,Norma SJ,Lob,Norma Lob,Smash,Norma Smash,Evaluasi Total\n';
+                    let csv = 'Nama,NIM,Jenis Kelamin,Kelas,Sekolah,Tanggal,Penguji,Servis Pendek Total,Norma SP,Rincian SP (20x),Servis Panjang Total,Norma SJ,Rincian SJ (20x),Lob Total,Norma Lob,Rincian Lob (20x),Smash Total,Norma Smash,Rincian Smash (20x),Evaluasi Total\n';
                     items.forEach(r => {
-                        csv += `"${r.nama}","${r.nim}","${r.jenisKelamin}","${r.kelas}","${r.sekolah || '-'}","${r.tanggal}",${r.skorServisPendek || 0},"${r.normaServisPendek}",${r.skorServisPanjang || 0},"${r.normaServisPanjang}",${r.skorLob || 0},"${r.normaLob}",${r.skorSmash || 0},"${r.normaSmash}","${r.evaluasiTotal}"\n`;
+                        const spStr = (r.trialsServisPendek && r.trialsServisPendek.length) ? r.trialsServisPendek.join('-') : '';
+                        const sjStr = (r.trialsServisPanjang && r.trialsServisPanjang.length) ? r.trialsServisPanjang.join('-') : '';
+                        const lobStr = (r.trialsLob && r.trialsLob.length) ? r.trialsLob.join('-') : '';
+                        const smashStr = (r.trialsSmash && r.trialsSmash.length) ? r.trialsSmash.join('-') : '';
+
+                        csv += `"${r.nama}","${r.nim}","${r.jenisKelamin}","${r.kelas}","${r.sekolah || '-'}","${r.tanggal}","${r.penguji}",${r.skorServisPendek || 0},"${r.normaServisPendek}","${spStr}",${r.skorServisPanjang || 0},"${r.normaServisPanjang}","${sjStr}",${r.skorLob || 0},"${r.normaLob}","${lobStr}",${r.skorSmash || 0},"${r.normaSmash}","${smashStr}","${r.evaluasiTotal}"\n`;
                     });
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.setAttribute('download', 'SA_BAWA_Rekap_Penilaian.csv');
+                    link.setAttribute('download', 'SA_BAWA_Rekap_20x_Penilaian.csv');
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
