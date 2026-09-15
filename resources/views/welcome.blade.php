@@ -116,16 +116,16 @@
 
             <!-- Status Sync & Admin Badge & Controls -->
             <div class="flex items-center space-x-3">
-                <!-- MySQL Status & Sync Button -->
+                <!-- Database Status & Sync Button -->
                 <div class="flex items-center space-x-2 mr-1">
                     <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-colors shadow-sm"
                           :class="dbConnected ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'">
                         <span class="w-2 h-2 rounded-full" :class="dbConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
-                        <span x-text="dbConnected ? ((dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + ' Terhubung') : 'Offline Cache'"></span>
+                        <span x-text="dbConnected ? 'Database Terhubung' : 'Offline Cache'"></span>
                     </span>
                     <button @click="loadAllData(true)" :disabled="isSyncing"
                             class="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-purple-100/70 hover:bg-purple-200/80 text-purple-800 text-[11px] font-bold transition-all disabled:opacity-50"
-                            title="Sinkronkan data dari MySQL">
+                            title="Sinkronkan data dari Database">
                         <i class="fa-solid fa-arrows-rotate" :class="isSyncing ? 'animate-spin' : ''"></i>
                         <span class="hidden md:inline">Sinkron</span>
                     </button>
@@ -291,7 +291,7 @@
                                             <span class="text-[11px] text-purple-200 font-semibold" x-text="isAdmin ? 'Admin' : 'Guest'"></span>
                                             <button @click="loadAllData(true)" :disabled="isSyncing" class="bg-white/25 hover:bg-white/35 text-white px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center space-x-1 transition-all" title="Sinkronkan Database">
                                                 <i class="fa-solid fa-arrows-rotate text-[8px]" :class="isSyncing ? 'animate-spin' : ''"></i>
-                                                <span x-text="(dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + ' Sync'"></span>
+                                                <span>Database Sync</span>
                                             </button>
                                         </div>
                                         <h2 class="text-xl font-extrabold mt-1 tracking-tight" x-text="appSettings.appName + ' Assessment'"></h2>
@@ -1926,14 +1926,14 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Sinkronisasi Berhasil!',
-                                text: 'Data terbaru berhasil dimuat dari database ' + (this.dbDriver === 'sqlite' ? 'SQLite' : 'MySQL') + '.',
+                                text: 'Data terbaru berhasil dimuat dari database.',
                                 confirmButtonColor: '#7e22ce',
                                 timer: 1500,
                                 customClass: { popup: 'rounded-3xl' }
                             });
                         }
                     } catch (e) {
-                        console.warn('Gagal memuat dari MySQL, menggunakan cache lokal:', e);
+                        console.warn('Gagal memuat dari database, menggunakan cache lokal:', e);
                         this.dbConnected = false;
                         this.loadFromLocalStorageFallback();
                     } finally {
@@ -2146,7 +2146,7 @@
 
                         if (!res.ok) {
                             const errData = await res.json().catch(() => ({}));
-                            throw new Error(errData.message || 'Gagal menyimpan data ke MySQL server.');
+                            throw new Error(errData.message || 'Gagal menyimpan data ke database.');
                         }
                         const result = await res.json();
 
@@ -2163,7 +2163,7 @@
 
                         Swal.fire({
                             icon: 'success',
-                            title: 'Berhasil Simpan ke MySQL!',
+                            title: 'Berhasil Simpan ke Database!',
                             text: 'Data tes 20x percobaan telah tersimpan di database.',
                             confirmButtonColor: '#7e22ce',
                             timer: 2000,
@@ -2233,7 +2233,7 @@
                 deleteRecord(id) {
                     Swal.fire({
                         title: 'Apakah Anda yakin?',
-                        text: 'Data tes ini akan dihapus secara permanen dari MySQL!',
+                        text: 'Data tes ini akan dihapus secara permanen dari database!',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#7e22ce',
@@ -2304,7 +2304,7 @@
                         }
                         this.saveToLocalStorageFallback();
                         this.showMateriModal = false;
-                        Swal.fire({ icon: 'success', title: 'Materi Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                        Swal.fire({ icon: 'success', title: 'Materi Tersimpan ke Database', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                     } catch (e) {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
@@ -2372,7 +2372,7 @@
                         }
                         this.saveToLocalStorageFallback();
                         this.showVideoModal = false;
-                        Swal.fire({ icon: 'success', title: 'Video Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                        Swal.fire({ icon: 'success', title: 'Video Tersimpan ke Database', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                     } catch (e) {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
@@ -2440,7 +2440,7 @@
                         }
                         this.saveToLocalStorageFallback();
                         this.showFaqModal = false;
-                        Swal.fire({ icon: 'success', title: 'FAQ Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                        Swal.fire({ icon: 'success', title: 'FAQ Tersimpan ke Database', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                     } catch (e) {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
@@ -2508,7 +2508,7 @@
                         }
                         this.saveToLocalStorageFallback();
                         this.showResearcherModal = false;
-                        Swal.fire({ icon: 'success', title: 'Data Peneliti Tersimpan ke MySQL', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
+                        Swal.fire({ icon: 'success', title: 'Data Peneliti Tersimpan ke Database', confirmButtonColor: '#7e22ce', timer: 1500, customClass: { popup: 'rounded-3xl' } });
                     } catch (e) {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: e.message });
                     }
@@ -2649,7 +2649,7 @@
 
                         Swal.fire({
                             icon: 'success',
-                            title: 'Pengaturan Tersimpan ke MySQL!',
+                            title: 'Pengaturan Tersimpan ke Database!',
                             text: 'Icon logo & identitas aplikasi berhasil diperbarui.',
                             confirmButtonColor: '#7e22ce',
                             timer: 2000,
@@ -2860,136 +2860,136 @@
 
                 generateDetailCertificateHTML(r) {
                     if (!r) return '';
-                    const spTrials = (r.trialsServisPendek && r.trialsServisPendek.length) ? r.trialsServisPendek.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#f3e8ff; border:1px solid #d8b4fe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#581c87; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
-                    const sjTrials = (r.trialsServisPanjang && r.trialsServisPanjang.length) ? r.trialsServisPanjang.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#e0e7ff; border:1px solid #c7d2fe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#3730a3; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
-                    const lobTrials = (r.trialsLob && r.trialsLob.length) ? r.trialsLob.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#dbeafe; border:1px solid #bfdbfe; border-radius:3px; font-size:8.5px; font-weight:bold; color:#1e40af; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
-                    const smashTrials = (r.trialsSmash && r.trialsSmash.length) ? r.trialsSmash.map((t, i) => `<span style="display:inline-block; width:17px; height:17px; line-height:17px; text-align:center; background:#ffe4e6; border:1px solid #fecdd3; border-radius:3px; font-size:8.5px; font-weight:bold; color:#9f1239; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const spTrials = (r.trialsServisPendek && r.trialsServisPendek.length) ? r.trialsServisPendek.map((t, i) => `<span style="display:inline-block; width:15px; height:15px; line-height:15px; text-align:center; background:#f3e8ff; border:1px solid #d8b4fe; border-radius:3px; font-size:8px; font-weight:bold; color:#581c87; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const sjTrials = (r.trialsServisPanjang && r.trialsServisPanjang.length) ? r.trialsServisPanjang.map((t, i) => `<span style="display:inline-block; width:15px; height:15px; line-height:15px; text-align:center; background:#e0e7ff; border:1px solid #c7d2fe; border-radius:3px; font-size:8px; font-weight:bold; color:#3730a3; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const lobTrials = (r.trialsLob && r.trialsLob.length) ? r.trialsLob.map((t, i) => `<span style="display:inline-block; width:15px; height:15px; line-height:15px; text-align:center; background:#dbeafe; border:1px solid #bfdbfe; border-radius:3px; font-size:8px; font-weight:bold; color:#1e40af; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
+                    const smashTrials = (r.trialsSmash && r.trialsSmash.length) ? r.trialsSmash.map((t, i) => `<span style="display:inline-block; width:15px; height:15px; line-height:15px; text-align:center; background:#ffe4e6; border:1px solid #fecdd3; border-radius:3px; font-size:8px; font-weight:bold; color:#9f1239; margin:1px;">${t}</span>`).join('') : '<span style="color:#94a3b8;">-</span>';
 
                     return `
-                    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; padding: 24px; max-width: 800px; margin: 0 auto; background: #ffffff;">
+                    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; padding: 16px 20px; width: 100%; box-sizing: border-box; background: #ffffff;">
                         <!-- KOP SURAT RESMI -->
-                        <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 16px;">
-                            <img src="${this.appSettings.appLogo || '/images/logo1.png'}" style="height: 68px; width: auto; margin-right: 18px;" alt="Logo" />
+                        <div style="display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 12px;">
+                            <img src="${this.appSettings.appLogo || '/images/logo1.png'}" style="height: 58px; width: auto; margin-right: 16px;" alt="Logo" />
                             <div style="text-align: center; flex: 1;">
-                                <h3 style="font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155; letter-spacing: 0.5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h3>
-                                <h2 style="font-size: 16px; font-weight: 900; margin: 2px 0; text-transform: uppercase; color: #0f172a;">UNIVERSITAS SRIWIJAYA</h2>
-                                <h3 style="font-size: 13px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155;">FAKULTAS KEGURUAN DAN ILMU PENDIDIKAN</h3>
-                                <p style="font-size: 11px; font-weight: 700; margin: 2px 0 0 0; color: #6b21a8;">PROGRAM STUDI PENDIDIKAN JASMANI DAN KESEHATAN</p>
-                                <p style="font-size: 9.5px; margin: 2px 0 0 0; color: #64748b;">Jalan Palembang - Prabumulih KM. 32, Indralaya, Ogan Ilir, Sumatera Selatan 30662</p>
+                                <h3 style="font-size: 11.5px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155; letter-spacing: 0.5px;">KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI</h3>
+                                <h2 style="font-size: 14.5px; font-weight: 900; margin: 2px 0; text-transform: uppercase; color: #0f172a;">UNIVERSITAS SRIWIJAYA</h2>
+                                <h3 style="font-size: 11.5px; font-weight: 800; margin: 0; text-transform: uppercase; color: #334155;">FAKULTAS KEGURUAN DAN ILMU PENDIDIKAN</h3>
+                                <p style="font-size: 10px; font-weight: 700; margin: 2px 0 0 0; color: #6b21a8;">PROGRAM STUDI PENDIDIKAN JASMANI DAN KESEHATAN</p>
+                                <p style="font-size: 8.5px; margin: 2px 0 0 0; color: #64748b;">Jalan Palembang - Prabumulih KM. 32, Indralaya, Ogan Ilir, Sumatera Selatan 30662</p>
                             </div>
                         </div>
 
                         <!-- JUDUL DOKUMEN -->
-                        <div style="text-align: center; margin-bottom: 18px;">
-                            <h2 style="font-size: 15px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #1e1b4b;">KARTU HASIL TES KETERAMPILAN BULUTANGKIS</h2>
-                            <p style="font-size: 11px; color: #475569; margin: 3px 0 0 0; font-weight: 600;">Instrumen Penilaian SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp)</p>
+                        <div style="text-align: center; margin-bottom: 12px;">
+                            <h2 style="font-size: 13.5px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; color: #1e1b4b;">KARTU HASIL TES KETERAMPILAN BULUTANGKIS</h2>
+                            <p style="font-size: 9.5px; color: #475569; margin: 2px 0 0 0; font-weight: 600;">Instrumen Penilaian SA'BAWA (Silvi Aryanti' Badminton Assessment WebApp)</p>
                         </div>
 
                         <!-- BIODATA SISWA -->
-                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 11px;">
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; font-size: 10px;">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td style="width: 16%; padding: 3px 0; color: #64748b;">Nama Lengkap</td>
-                                    <td style="width: 34%; padding: 3px 0;">: <strong style="font-size: 12px; color: #0f172a;">${r.nama}</strong></td>
-                                    <td style="width: 16%; padding: 3px 0; color: #64748b;">Tanggal Tes</td>
-                                    <td style="width: 34%; padding: 3px 0;">: <strong>${r.tanggal || '-'}</strong></td>
+                                    <td style="width: 16%; padding: 2px 0; color: #64748b;">Nama Lengkap</td>
+                                    <td style="width: 34%; padding: 2px 0;">: <strong style="font-size: 10.5px; color: #0f172a;">${r.nama}</strong></td>
+                                    <td style="width: 16%; padding: 2px 0; color: #64748b;">Tanggal Tes</td>
+                                    <td style="width: 34%; padding: 2px 0;">: <strong>${r.tanggal || '-'}</strong></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 3px 0; color: #64748b;">NIM / No. Peserta</td>
-                                    <td style="padding: 3px 0;">: <strong>${r.nim}</strong></td>
-                                    <td style="padding: 3px 0; color: #64748b;">Kelas / Rombel</td>
-                                    <td style="padding: 3px 0;">: <strong>${r.kelas || '-'}</strong></td>
+                                    <td style="padding: 2px 0; color: #64748b;">NIM / Peserta</td>
+                                    <td style="padding: 2px 0;">: <strong>${r.nim}</strong></td>
+                                    <td style="padding: 2px 0; color: #64748b;">Kelas / Rombel</td>
+                                    <td style="padding: 2px 0;">: <strong>${r.kelas || '-'}</strong></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 3px 0; color: #64748b;">Jenis Kelamin</td>
-                                    <td style="padding: 3px 0;">: <strong>${r.jenisKelamin === 'L' ? 'Laki-Laki' : 'Perempuan'}</strong></td>
-                                    <td style="padding: 3px 0; color: #64748b;">Asal Sekolah</td>
-                                    <td style="padding: 3px 0;">: <strong>${r.sekolah || '-'}</strong></td>
+                                    <td style="padding: 2px 0; color: #64748b;">Jenis Kelamin</td>
+                                    <td style="padding: 2px 0;">: <strong>${r.jenisKelamin === 'L' ? 'Laki-Laki' : 'Perempuan'}</strong></td>
+                                    <td style="padding: 2px 0; color: #64748b;">Asal Sekolah</td>
+                                    <td style="padding: 2px 0;">: <strong>${r.sekolah || '-'}</strong></td>
                                 </tr>
                             </table>
                         </div>
 
                         <!-- TABEL RINCIAN 4 KETERAMPILAN -->
-                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 18px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 12px;">
                             <thead>
                                 <tr style="background-color: #4c1d95; color: #ffffff;">
-                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 35px;">No</th>
-                                    <th style="border: 1px solid #334155; padding: 8px; text-align: left;">Keterampilan Teknik</th>
-                                    <th style="border: 1px solid #334155; padding: 8px; text-align: left;">Rincian 20 Kali Percobaan (Trial 1 s.d 20)</th>
-                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 85px;">Skor Total</th>
-                                    <th style="border: 1px solid #334155; padding: 8px; text-align: center; width: 100px;">Kategori Norma</th>
+                                    <th style="border: 1px solid #334155; padding: 6px 4px; text-align: center; width: 28px;">No</th>
+                                    <th style="border: 1px solid #334155; padding: 6px 8px; text-align: left; width: 170px;">Keterampilan Teknik</th>
+                                    <th style="border: 1px solid #334155; padding: 6px 8px; text-align: left;">Rincian 20 Kali Percobaan (Trial 1 s.d 20)</th>
+                                    <th style="border: 1px solid #334155; padding: 6px 8px; text-align: center; width: 75px;">Skor Total</th>
+                                    <th style="border: 1px solid #334155; padding: 6px 8px; text-align: center; width: 95px;">Kategori Norma</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- Servis Pendek -->
                                 <tr style="border-bottom: 1px solid #cbd5e1;">
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">1</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #581c87;">Servis Pendek (Short Serve)</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${spTrials}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #581c87;">${r.skorServisPendek ?? 0}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
-                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaServisPendek)}">${r.normaServisPendek || '-'}</span>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">1</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; font-weight: bold; color: #581c87;">Servis Pendek (Short Serve)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px;">${spTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center; font-size: 13px; font-weight: 900; color: #581c87;">${r.skorServisPendek ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-weight: 800; font-size: 9px; ${this.getPdfBadgeStyle(r.normaServisPendek)}">${r.normaServisPendek || '-'}</span>
                                     </td>
                                 </tr>
                                 <!-- Servis Panjang -->
                                 <tr style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1;">
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">2</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #3730a3;">Servis Panjang (Long Serve)</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${sjTrials}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #3730a3;">${r.skorServisPanjang ?? 0}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
-                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaServisPanjang)}">${r.normaServisPanjang || '-'}</span>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">2</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; font-weight: bold; color: #3730a3;">Servis Panjang (Long Serve)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px;">${sjTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center; font-size: 13px; font-weight: 900; color: #3730a3;">${r.skorServisPanjang ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-weight: 800; font-size: 9px; ${this.getPdfBadgeStyle(r.normaServisPanjang)}">${r.normaServisPanjang || '-'}</span>
                                     </td>
                                 </tr>
                                 <!-- Pukulan Lob -->
                                 <tr style="border-bottom: 1px solid #cbd5e1;">
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">3</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #1e40af;">Pukulan Lob (High Clear)</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${lobTrials}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #1e40af;">${r.skorLob ?? 0}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
-                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaLob)}">${r.normaLob || '-'}</span>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">3</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; font-weight: bold; color: #1e40af;">Pukulan Lob (High Clear)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px;">${lobTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center; font-size: 13px; font-weight: 900; color: #1e40af;">${r.skorLob ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-weight: 800; font-size: 9px; ${this.getPdfBadgeStyle(r.normaLob)}">${r.normaLob || '-'}</span>
                                     </td>
                                 </tr>
                                 <!-- Pukulan Smash -->
                                 <tr style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1;">
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-weight: bold;">4</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold; color: #9f1239;">Pukulan Smash (Smash Test)</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px;">${smashTrials}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-size: 14px; font-weight: 900; color: #9f1239;">${r.skorSmash ?? 0}</td>
-                                    <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">
-                                        <span style="display: inline-block; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 9.5px; ${this.getPdfBadgeStyle(r.normaSmash)}">${r.normaSmash || '-'}</span>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">4</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; font-weight: bold; color: #9f1239;">Pukulan Smash (Smash Test)</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px;">${smashTrials}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center; font-size: 13px; font-weight: 900; color: #9f1239;">${r.skorSmash ?? 0}</td>
+                                    <td style="border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center;">
+                                        <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-weight: 800; font-size: 9px; ${this.getPdfBadgeStyle(r.normaSmash)}">${r.normaSmash || '-'}</span>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <!-- KOTAK EVALUASI KESELURUHAN -->
-                        <div style="background: linear-gradient(135deg, #7e22ce 0%, #4c1d95 100%); color: #ffffff; padding: 14px 18px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div style="background: linear-gradient(135deg, #7e22ce 0%, #4c1d95 100%); color: #ffffff; padding: 10px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                             <div>
-                                <p style="font-size: 9.5px; color: #e9d5ff; text-transform: uppercase; font-weight: 700; margin: 0;">Evaluasi Keterampilan Keseluruhan</p>
-                                <h3 style="font-size: 17px; font-weight: 900; margin: 2px 0 0 0; color: #ffffff;">${r.evaluasiTotal || '-'}</h3>
+                                <p style="font-size: 8.5px; color: #e9d5ff; text-transform: uppercase; font-weight: 700; margin: 0;">Evaluasi Keterampilan Keseluruhan</p>
+                                <h3 style="font-size: 15px; font-weight: 900; margin: 2px 0 0 0; color: #ffffff;">${r.evaluasiTotal || '-'}</h3>
                             </div>
-                            <div style="text-align: right; font-size: 11px;">
-                                <p style="color: #e9d5ff; font-size: 9.5px; margin: 0;">Kriteria Standar Instrumen:</p>
-                                <p style="font-weight: 800; margin: 2px 0 0 0; color: #facc15;">Lengkap 4 Teknik Dasar Teruji</p>
+                            <div style="text-align: right; font-size: 9.5px;">
+                                <p style="color: #e9d5ff; font-size: 8.5px; margin: 0;">Kriteria Standar Instrumen:</p>
+                                <p style="font-weight: 800; margin: 2px 0 0 0; color: #facc15;">Lengkap 4 Keterampilan Teruji (20x Percobaan)</p>
                             </div>
                         </div>
 
                         <!-- TANDA TANGAN PENGESAHAN -->
-                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 20px;">
-                            <div style="width: 200px; text-align: center;">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 14px;">
+                            <div style="width: 180px; text-align: center;">
                                 <p style="margin: 0; color: #64748b;">Peserta Tes,</p>
-                                <div style="height: 50px;"></div>
+                                <div style="height: 38px;"></div>
                                 <p style="margin: 0; font-weight: 800; text-decoration: underline;">${r.nama}</p>
-                                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">NIM. ${r.nim}</p>
+                                <p style="margin: 2px 0 0 0; font-size: 9px; color: #64748b;">NIM. ${r.nim}</p>
                             </div>
                             <div style="width: 220px; text-align: center;">
                                 <p style="margin: 0;">Indralaya, ${r.tanggal || new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</p>
-                                <p style="margin: 3px 0 0 0; font-weight: 600;">Dosen Pengampu / Peneliti Utama,</p>
-                                <div style="height: 50px;"></div>
+                                <p style="margin: 2px 0 0 0; font-weight: 600;">Dosen Pengampu / Peneliti,</p>
+                                <div style="height: 38px;"></div>
                                 <p style="margin: 0; font-weight: 900; text-decoration: underline;">${r.penguji || (this.researchers[0] ? this.researchers[0].name : 'Silvi Aryanti, M.Pd.')}</p>
-                                <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">NIP. 198804242019032014</p>
+                                <p style="margin: 2px 0 0 0; font-size: 9px; color: #64748b;">NIP. 198804242019032014</p>
                             </div>
                         </div>
                     </div>`;
@@ -3009,6 +3009,13 @@
 
                     this.isExportingPdf = true;
                     const container = document.createElement('div');
+                    container.style.position = 'fixed';
+                    container.style.top = '0';
+                    container.style.left = '0';
+                    container.style.width = '1080px';
+                    container.style.zIndex = '999999';
+                    container.style.backgroundColor = '#ffffff';
+                    container.style.boxSizing = 'border-box';
                     container.innerHTML = this.generateRekapHTML(items);
                     document.body.appendChild(container);
 
@@ -3016,8 +3023,16 @@
                         margin: [6, 6, 6, 6],
                         filename: 'SA_BAWA_Rekap_Asesmen_' + new Date().toISOString().slice(0, 10) + '.pdf',
                         image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true, logging: false },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0,
+                            windowWidth: 1080
+                        },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                     };
 
                     html2pdf().set(opt).from(container).save().then(() => {
@@ -3042,6 +3057,13 @@
                     if (!this.selectedRecord) return;
                     this.isExportingPdf = true;
                     const container = document.createElement('div');
+                    container.style.position = 'fixed';
+                    container.style.top = '0';
+                    container.style.left = '0';
+                    container.style.width = '750px';
+                    container.style.zIndex = '999999';
+                    container.style.backgroundColor = '#ffffff';
+                    container.style.boxSizing = 'border-box';
                     container.innerHTML = this.generateDetailCertificateHTML(this.selectedRecord);
                     document.body.appendChild(container);
 
@@ -3050,8 +3072,16 @@
                         margin: [8, 8, 8, 8],
                         filename: 'SA_BAWA_Hasil_Tes_' + cleanName + '_' + (this.selectedRecord.nim || '') + '.pdf',
                         image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true, logging: false },
-                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        html2canvas: {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0,
+                            windowWidth: 750
+                        },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                     };
 
                     html2pdf().set(opt).from(container).save().then(() => {
