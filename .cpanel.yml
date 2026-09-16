@@ -1,7 +1,8 @@
 ---
 deployment:
   tasks:
+    - export DEPLOYPATH=/home/pesonaas/sa-badmintonapp.com/
     - git config core.fileMode false
-    - /bin/mkdir -p /home/pesonaas/sa-badmintonapp.com/storage/framework/sessions /home/pesonaas/sa-badmintonapp.com/storage/framework/views /home/pesonaas/sa-badmintonapp.com/storage/framework/cache/data /home/pesonaas/sa-badmintonapp.com/storage/logs /home/pesonaas/sa-badmintonapp.com/bootstrap/cache
-    - /bin/chmod -R 775 /home/pesonaas/sa-badmintonapp.com/storage /home/pesonaas/sa-badmintonapp.com/bootstrap/cache
+    - /bin/mkdir -p $DEPLOYPATH/storage/framework/sessions $DEPLOYPATH/storage/framework/views $DEPLOYPATH/storage/framework/cache/data $DEPLOYPATH/storage/logs $DEPLOYPATH/bootstrap/cache
+    - /bin/chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
 
