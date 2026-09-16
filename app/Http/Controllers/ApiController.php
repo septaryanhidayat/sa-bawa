@@ -19,8 +19,7 @@ class ApiController extends Controller
      */
     public function getAppData(): JsonResponse
     {
-        $records = Assessment::orderBy('tanggal', 'desc')
-            ->orderBy('id', 'desc')
+        $records = Assessment::orderBy('id', 'desc')
             ->get()
             ->map(function ($r) {
                 return [

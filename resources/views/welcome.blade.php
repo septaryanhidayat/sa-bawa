@@ -284,14 +284,13 @@
                             <div class="bank-card-bright rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                                            <span class="bg-white/20 backdrop-blur-md text-[11px] px-2.5 py-0.5 rounded-full font-medium text-purple-100">
+                                        <div class="flex items-center space-x-1.5 flex-nowrap">
+                                            <span class="bg-white/20 backdrop-blur-md text-[11px] px-2.5 py-0.5 rounded-full font-medium text-purple-100 whitespace-nowrap">
                                                 👋 Halo, Selamat Datang
                                             </span>
                                             <span class="text-[11px] text-purple-200 font-semibold" x-text="isAdmin ? 'Admin' : 'Guest'"></span>
-                                            <button @click="loadAllData(true)" :disabled="isSyncing" class="bg-white/25 hover:bg-white/35 text-white px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center space-x-1 transition-all" title="Sinkronkan Database">
-                                                <i class="fa-solid fa-arrows-rotate text-[8px]" :class="isSyncing ? 'animate-spin' : ''"></i>
-                                                <span>Database Sync</span>
+                                            <button @click="loadAllData(true)" :disabled="isSyncing" class="bg-white/25 hover:bg-white/35 text-white w-6 h-6 rounded-full text-[10px] font-bold inline-flex items-center justify-center transition-all shadow-xs shrink-0" title="Sinkronkan Database">
+                                                <i class="fa-solid fa-arrows-rotate" :class="isSyncing ? 'animate-spin' : ''"></i>
                                             </button>
                                         </div>
                                         <h2 class="text-xl font-extrabold mt-1 tracking-tight" x-text="appSettings.appName + ' Assessment'"></h2>
@@ -335,12 +334,12 @@
                                         <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Isi Data</span>
                                     </button>
 
-                                    <!-- 2. Tampil Data -->
+                                    <!-- 2. Data -->
                                     <button @click="activeTab = 'data'" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 hover:shadow-md transition-all group min-h-[82px]">
                                         <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
                                             <i class="fa-solid fa-table-list text-lg"></i>
                                         </div>
-                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Tampil Data</span>
+                                        <span class="text-[11px] font-bold text-slate-800 mt-1.5 text-center leading-tight">Data</span>
                                     </button>
 
                                     <!-- 3. Materi -->
@@ -423,7 +422,7 @@
                                         </div>
                                     </template>
 
-                                    <template x-for="(item, index) in records.slice(0, 5)" :key="item.id || index">
+                                    <template x-for="(item, index) in sortedRecords.slice(0, 3)" :key="item.id || index">
                                         <div class="bg-white rounded-2xl p-3.5 flex justify-between items-center border border-slate-200/90 shadow-2xs hover:border-purple-300 hover:shadow-md transition-all cursor-pointer" @click="openDetailModal(item)">
                                             <div class="flex items-center space-x-3.5 min-w-0 pr-2">
                                                 <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-sm shrink-0"
@@ -474,7 +473,21 @@
                                 </div>
                             </div>
 
-                            <form @submit.prevent="saveRecord()" class="space-y-4">
+                            <!-- AUTO-SAVE DRAFT STATUS BANNER -->
+                            <div x-show="!form.id && hasDraft" x-transition class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/90 rounded-2xl p-2.5 px-3 flex items-center justify-between text-[11px] text-emerald-900 shadow-2xs">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                                    <span>
+                                        <strong>Draf Otomatis Aktif</strong>
+                                        <span class="text-emerald-700 text-[10px] block sm:inline" x-text="lastDraftSaved ? '• Tersimpan pk ' + lastDraftSaved : '• Tersimpan otomatis di perangkat'"></span>
+                                    </span>
+                                </div>
+                                <button type="button" @click="clearDraft()" class="text-[10px] font-bold text-rose-600 hover:text-rose-800 bg-white/80 hover:bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200 transition-all shrink-0">
+                                    <i class="fa-solid fa-trash-can mr-1"></i>Hapus Draf
+                                </button>
+                            </div>
+
+                            <form @submit.prevent="saveRecord()" @input="saveDraft()" @change="saveDraft()" class="space-y-4">
                                 <!-- IDENTITAS TESTEE -->
                                 <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
                                     <h3 class="text-xs font-bold text-purple-900 uppercase tracking-wider border-b border-slate-100 pb-2">
@@ -581,15 +594,15 @@
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
                                                 <template x-for="i in 20" :key="'sp-'+i">
-                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-purple-600 focus-within:ring-2 focus-within:ring-purple-200 transition-all">
-                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
-                                                        <input type="number" min="0" max="5"
+                                                    <div class="flex flex-col items-center justify-center bg-white py-2 px-1 rounded-2xl border-2 border-slate-200/90 shadow-2xs hover:border-purple-300 focus-within:border-purple-600 focus-within:ring-4 focus-within:ring-purple-100 transition-all min-h-[58px]">
+                                                        <span class="text-[10px] font-extrabold text-slate-400 leading-none" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5" inputmode="numeric" pattern="[0-9]*"
                                                                :id="'input-sp-'+(i-1)"
                                                                x-model.number="form.trialsServisPendek[i-1]"
                                                                @input="onTrialInput('sp', i-1, $event)"
-                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                               class="w-full text-center text-base sm:text-lg font-black text-slate-900 bg-transparent focus:outline-none py-0.5 mt-0.5">
                                                     </div>
                                                 </template>
                                             </div>
@@ -633,15 +646,15 @@
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
                                                 <template x-for="i in 20" :key="'sj-'+i">
-                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-200 transition-all">
-                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
-                                                        <input type="number" min="0" max="5"
+                                                    <div class="flex flex-col items-center justify-center bg-white py-2 px-1 rounded-2xl border-2 border-slate-200/90 shadow-2xs hover:border-indigo-300 focus-within:border-indigo-600 focus-within:ring-4 focus-within:ring-indigo-100 transition-all min-h-[58px]">
+                                                        <span class="text-[10px] font-extrabold text-slate-400 leading-none" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5" inputmode="numeric" pattern="[0-9]*"
                                                                :id="'input-sj-'+(i-1)"
                                                                x-model.number="form.trialsServisPanjang[i-1]"
                                                                @input="onTrialInput('sj', i-1, $event)"
-                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                               class="w-full text-center text-base sm:text-lg font-black text-slate-900 bg-transparent focus:outline-none py-0.5 mt-0.5">
                                                     </div>
                                                 </template>
                                             </div>
@@ -685,15 +698,15 @@
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
                                                 <template x-for="i in 20" :key="'lob-'+i">
-                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
-                                                        <input type="number" min="0" max="5"
+                                                    <div class="flex flex-col items-center justify-center bg-white py-2 px-1 rounded-2xl border-2 border-slate-200/90 shadow-2xs hover:border-blue-300 focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100 transition-all min-h-[58px]">
+                                                        <span class="text-[10px] font-extrabold text-slate-400 leading-none" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5" inputmode="numeric" pattern="[0-9]*"
                                                                :id="'input-lob-'+(i-1)"
                                                                x-model.number="form.trialsLob[i-1]"
                                                                @input="onTrialInput('lob', i-1, $event)"
-                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                               class="w-full text-center text-base sm:text-lg font-black text-slate-900 bg-transparent focus:outline-none py-0.5 mt-0.5">
                                                     </div>
                                                 </template>
                                             </div>
@@ -737,15 +750,15 @@
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
                                                 <template x-for="i in 20" :key="'smash-'+i">
-                                                    <div class="flex flex-col items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:border-rose-600 focus-within:ring-2 focus-within:ring-rose-200 transition-all">
-                                                        <span class="text-[8px] font-bold text-slate-400" x-text="'#'+i"></span>
-                                                        <input type="number" min="0" max="5"
+                                                    <div class="flex flex-col items-center justify-center bg-white py-2 px-1 rounded-2xl border-2 border-slate-200/90 shadow-2xs hover:border-rose-300 focus-within:border-rose-600 focus-within:ring-4 focus-within:ring-rose-100 transition-all min-h-[58px]">
+                                                        <span class="text-[10px] font-extrabold text-slate-400 leading-none" x-text="'#'+i"></span>
+                                                        <input type="number" min="0" max="5" inputmode="numeric" pattern="[0-9]*"
                                                                :id="'input-smash-'+(i-1)"
                                                                x-model.number="form.trialsSmash[i-1]"
                                                                @input="onTrialInput('smash', i-1, $event)"
-                                                               class="w-full text-center text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none p-0.5">
+                                                               class="w-full text-center text-base sm:text-lg font-black text-slate-900 bg-transparent focus:outline-none py-0.5 mt-0.5">
                                                     </div>
                                                 </template>
                                             </div>
@@ -1783,6 +1796,10 @@
                 isSaving: false,
                 isExportingPdf: false,
 
+                // Draft Auto-Save State
+                hasDraft: false,
+                lastDraftSaved: '',
+
                 csrfToken() {
                     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                 },
@@ -1857,12 +1874,69 @@
                 init() {
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
+                    this.loadDraft();
                     this.loadAllData();
                 },
 
                 updateTime() {
                     const now = new Date();
                     this.currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                },
+
+                // AUTO-SAVE DRAFT IMPLEMENTATION
+                saveDraft() {
+                    if (this.form.id) return;
+                    const hasBasic = (this.form.nama && this.form.nama.trim() !== '') || (this.form.nim && this.form.nim.trim() !== '');
+                    const hasTrials = ['trialsServisPendek', 'trialsServisPanjang', 'trialsLob', 'trialsSmash'].some(
+                        k => Array.isArray(this.form[k]) && this.form[k].some(v => v > 0)
+                    );
+
+                    if (hasBasic || hasTrials) {
+                        try {
+                            localStorage.setItem('sabawa_form_draft', JSON.stringify(this.form));
+                            const now = new Date();
+                            this.lastDraftSaved = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                            this.hasDraft = true;
+                        } catch (e) {
+                            console.warn('Gagal menyimpan draf sementara:', e);
+                        }
+                    }
+                },
+
+                loadDraft() {
+                    try {
+                        const saved = localStorage.getItem('sabawa_form_draft');
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (parsed && typeof parsed === 'object') {
+                                if (!this.form.id) {
+                                    this.form = { ...this.form, ...parsed };
+                                    this.hasDraft = true;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Gagal memuat draf sementara:', e);
+                    }
+                },
+
+                clearDraft(notify = true) {
+                    try {
+                        localStorage.removeItem('sabawa_form_draft');
+                    } catch (e) {}
+                    this.hasDraft = false;
+                    this.lastDraftSaved = '';
+                    this.resetForm();
+                    if (notify) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Draf Dihapus',
+                            text: 'Formulir isian telah dikosongkan dan draf sementara dibersihkan.',
+                            confirmButtonColor: '#7e22ce',
+                            timer: 1500,
+                            customClass: { popup: 'rounded-3xl' }
+                        });
+                    }
                 },
 
                 // TOGGLE & TRIAL INPUT HELPERS
@@ -1885,6 +1959,9 @@
                     this.form[arrayKey][index] = val;
                     this.form[scoreKey] = this.form[arrayKey].reduce((sum, item) => sum + (parseInt(item) || 0), 0);
 
+                    // Auto-save draft on every trial input
+                    this.saveDraft();
+
                     // Auto-advance to next input field if single character typed
                     if (event.data && index < 19) {
                         const nextId = 'input-' + tech + '-' + (index + 1);
@@ -1902,10 +1979,12 @@
 
                     this.form[arrayKey] = Array(20).fill(val);
                     this.form[scoreKey] = val * 20;
+                    this.saveDraft();
                 },
 
                 resetTrials(tech) {
                     this.quickFillTrials(tech, 0);
+                    this.saveDraft();
                 },
 
                 // LOAD ALL DATA (MYSQL WITH LOCAL STORAGE FALLBACK)
@@ -2175,6 +2254,13 @@
                         }
 
                         this.saveToLocalStorageFallback();
+
+                        // Clear auto-saved draft on success
+                        try {
+                            localStorage.removeItem('sabawa_form_draft');
+                        } catch (e) {}
+                        this.hasDraft = false;
+                        this.lastDraftSaved = '';
 
                         Swal.fire({
                             icon: 'success',
@@ -2675,8 +2761,19 @@
                     }
                 },
 
+                get sortedRecords() {
+                    return [...this.records].sort((a, b) => {
+                        const idA = Number(a.id) || 0;
+                        const idB = Number(b.id) || 0;
+                        if (idB !== idA) return idB - idA;
+                        const dateA = a.tanggal ? new Date(a.tanggal).getTime() : 0;
+                        const dateB = b.tanggal ? new Date(b.tanggal).getTime() : 0;
+                        return dateB - dateA;
+                    });
+                },
+
                 get filteredRecords() {
-                    return this.records.filter(r => {
+                    return this.sortedRecords.filter(r => {
                         const matchQuery = !this.searchQuery || (r.nama && r.nama.toLowerCase().includes(this.searchQuery.toLowerCase())) || (r.nim && r.nim.includes(this.searchQuery));
                         const matchCat = !this.filterCategory || r.evaluasiTotal === this.filterCategory;
                         const matchSchool = !this.filterSchool || r.sekolah === this.filterSchool;
